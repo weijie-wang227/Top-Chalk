@@ -1,0 +1,42 @@
+.bar-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 40px;
+  height: 300px;
+  margin-top: 30px;
+}
+
+.bar {
+  width : 100%;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 10px 10px 0 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  animation: grow 1s ease-out forwards;
+  padding-bottom: 10px;
+}
+
+.first {
+  height: 100%;
+  background-color: gold;
+}
+
+.second {
+  height: 80%;
+  background-color: silver;
+}
+
+.third {
+  height: 50%;
+  background-color: #cd7f32; /* bronze */
+}
+
+@keyframes grow {
+  from {
+    height: 0;
+  }
+}
