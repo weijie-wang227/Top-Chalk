@@ -1,11 +1,19 @@
 import { Routes, Route, Link } from "react-router-dom";
-import { Box, Drawer, IconButton, List, ListItemText, ListItemButton } from "@mui/material";
+import {
+  Box,
+  Drawer,
+  IconButton,
+  List,
+  ListItemText,
+  ListItemButton,
+} from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useState } from "react";
 import Main from "./pages/Main";
 import Faculty from "./pages/Faculty";
 import Categories from "./pages/Categories";
 import Vote from "./pages/Vote";
+import Login from "./pages/Login";
 //import Topbar from "./components/Topbar";
 
 export default function App() {
@@ -32,6 +40,9 @@ export default function App() {
             <ListItemButton component={Link} to="/vote">
               <ListItemText primary="Vote" />
             </ListItemButton>
+            <ListItemButton component={Link} to="/login">
+              <ListItemText primary="Login" />
+            </ListItemButton>
           </List>
         </Box>
       </Drawer>
@@ -45,6 +56,7 @@ export default function App() {
           <Route path="/faculty" element={<Faculty />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/vote" element={<Vote />} />
+          <Route path="login" element={<Login />} />
         </Routes>
       </Box>
     </Box>
