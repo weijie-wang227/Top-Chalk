@@ -1,6 +1,7 @@
 package main
 
 import (
+	"backend/internal/config"
 	"backend/internal/routes"
 	"log"
 	"net/http"
@@ -9,7 +10,11 @@ import (
 )
 
 func main() {
-	router := routes.NewRouter()
+
+	db := config.ConnectDB()
+	config.FillDB(db)
+	defer db.Close()
+	router := routes.NewRouter(db)
 
 	corsHandler := handlers.CORS(
 		handlers.AllowedOrigins([]string{"http://localhost:5173"}),
