@@ -12,7 +12,7 @@ import (
 func main() {
 
 	db := config.ConnectDB()
-	config.FillDB(db)
+	config.CreateTables(db)
 	defer db.Close()
 	router := routes.NewRouter(db)
 

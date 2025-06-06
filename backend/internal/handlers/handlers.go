@@ -9,7 +9,6 @@ import (
 type LoginRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
-	Mode     string `json:"mode"`
 }
 
 func LoginHandler(db *sql.DB) http.HandlerFunc {
@@ -21,12 +20,7 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		var storedPassword string
-		var err error
-		if creds.Mode == "student" {
-			err = db.QueryRow("SELECT password FROM users WHERE students = ?", creds.Username).Scan(&storedPassword)
-		} else {
-			err = db.QueryRow("SELECT password FROM users WHERE teachers = ?", creds.Username).Scan(&storedPassword)
-		}
+		err := db.QueryRow("SELECT password FROM users WHERE username = ?", creds.Username).Scan(&storedPassword)
 
 		if err == sql.ErrNoRows || storedPassword != creds.Password {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -44,5 +38,33 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 			SameSite: http.SameSiteLaxMode,
 		})
 		json.NewEncoder(w).Encode(map[string]string{"message": "Login successful"})
+	}
+}
+
+func UpvoteHandler(db *sql.DB) http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+
+	}
+}
+
+func GetTop3Handler(db *sql.DB) http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+
+	}
+}
+
+func GetTop3ByCategoryHandler(db *sql.DB) http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+
+	}
+}
+
+func GetTop3ByFacultyHandler(db *sql.DB) http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+
 	}
 }
