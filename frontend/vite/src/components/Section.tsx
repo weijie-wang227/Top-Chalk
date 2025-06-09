@@ -8,21 +8,19 @@ interface CategoryProps {
       }[];
 }
 
+const variants = ["h3", "h4", "h5"] as const;
+
 const Section = ({ title, items }: CategoryProps) => {
   return (
     <>
-      {items != undefined && (
+      {items && items.length > 0 && (
         <Card sx={{ p: 2, my: 2 }}>
           <Typography variant="h2">{title}</Typography>
-          <Typography variant="h3">
-            1: {items[0].name} Votes: {items[0].votes}
-          </Typography>
-          <Typography variant="h4">
-            2: {items[1].name} Votes: {items[1].votes}
-          </Typography>
-          <Typography variant="h5">
-            3: {items[2].name} Votes: {items[2].votes}
-          </Typography>
+          {items.slice(0, 3).map((prof, index) => (
+            <Typography key={title + prof.name} variant={variants[index]}>
+              {index + 1}: {prof.name} Votes: {prof.votes}
+            </Typography>
+          ))}
         </Card>
       )}
     </>

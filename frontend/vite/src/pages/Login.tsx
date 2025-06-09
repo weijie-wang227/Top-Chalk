@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [username, setName] = useState("");
   const [password, setPassword] = useState("");
   const [failedLogins, setFailed] = useState(0);
@@ -21,13 +22,13 @@ const Login = () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username, password, mode }),
     });
 
     if (response.ok) {
       const data = await response.json();
       console.log(data.message);
-      useNavigate()("/");
+      navigate("/");
     } else {
       console.log("Login failed");
       setFailed(failedLogins + 1);
@@ -62,10 +63,10 @@ const Login = () => {
         onChange={handleToggle}
         aria-label="change-mode"
       >
-        <ToggleButton value="monthly" aria-label="student">
+        <ToggleButton value="student" aria-label="student">
           Login as Student
         </ToggleButton>
-        <ToggleButton value="yearly" aria-label="professor">
+        <ToggleButton value="teacher" aria-label="professor">
           Login as Professor
         </ToggleButton>
       </ToggleButtonGroup>

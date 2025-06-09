@@ -24,32 +24,35 @@ func CreateTables(db *sql.DB) error {
 	CREATE TABLE IF NOT EXISTS users (
 		id INT AUTO_INCREMENT PRIMARY KEY,
 		username VARCHAR(255) NOT NULL UNIQUE,
-		password VARCHAR(255) NOT NULL
+		password VARCHAR(255) NOT NULL,
+		mode VARCHAR(255) NOT NULL
 	);`
 	createFaculties := `
-	CREATE TABLE faculties (
+	CREATE TABLE IF NOT EXISTS faculties (
     	id INT AUTO_INCREMENT PRIMARY KEY,
     	name VARCHAR(100) NOT NULL
 	);`
 	createCategories := `
-	CREATE TABLE categories (
+	CREATE TABLE IF NOT EXISTS categories (
 		id INT AUTO_INCREMENT PRIMARY KEY,
 		name VARCHAR(100) NOT NULL
 	)`
 	createTeachersQuery := `
-	CREATE TABLE teachers (
+	CREATE TABLE IF NOT EXISTS teachers (
 		id INT NOT NULL,
 		faculty_id INT NOT NULL,
+		name VARCHAR(255) NOT NULL,
 		FOREIGN KEY (id) REFERENCES users(id) ON DELETE CASCADE,
 		FOREIGN KEY (faculty_id) REFERENCES faculties(id) ON DELETE CASCADE
 	);`
 	createVotesQuery := `
-	CREATE TABLE votes (
+	CREATE TABLE IF NOT EXISTS votes (
 		id INT NOT NULL,
 		category_id INT NOT NULL,
 		count int NOT NULL,
 		FOREIGN KEY (id) REFERENCES users(id) ON DELETE CASCADE,
-		FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+		FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
+		UNIQUE KEY unique_vote (id, category_id)
 	)`
 
 	_, err := db.Exec(createUsersQuery)
