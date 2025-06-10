@@ -1,48 +1,77 @@
 import { Box } from "@mui/material";
 import Section from "../components/Section";
+import { useState } from "react";
+import { useEffect } from "react";
+
+interface Data {
+  id: number;
+  name: string;
+}
+
+interface Teacher extends Data {
+  votes: number;
+}
 
 const Faculty = () => {
-  const findItems = (faculty: string) => {
-    return data.find((f) => f.faculty == faculty);
+  const [faculties, setFaculties] = useState<Data[]>([]);
+  // Map category id to array of teachers
+  const [topProfs, setTopProfs] = useState<Record<number, Teacher[]>>({});
+
+  useEffect(() => {
+    const fetchFacultiesAndTopProfs = async () => {
+      try {
+        const res = await fetch("http://localhost:8080/faculties");
+        if (!res.ok) throw new Error("Failed to fetch faculties");
+
+        const data: Data[] = await res.json();
+        setFaculties(data);
+
+        // Fetch top 3 professors for each category in parallel
+        const profMapEntries = await Promise.all(
+          data.map(async (category) => {
+            const profs = await fetchTop3Professors(category.id);
+            return [category.id, profs] as [number, Teacher[]];
+          })
+        );
+
+        // Convert to object and set once
+        const profMap = Object.fromEntries(profMapEntries);
+        setTopProfs(profMap);
+      } catch (err) {
+        console.error("Error:", err);
+      }
+    };
+
+    fetchFacultiesAndTopProfs();
+  }, []);
+
+  // Separate function to fetch top 3 professors for a category
+  const fetchTop3Professors = async (facultyId: number): Promise<Teacher[]> => {
+    try {
+      const res = await fetch(
+        `http://localhost:8080/top3faculties?faculty_id=${facultyId}`
+      );
+      if (!res.ok) throw new Error("Failed to fetch top professors");
+      const data: Teacher[] = await res.json();
+      return data;
+    } catch (err) {
+      console.error("Error:", err);
+      return [];
+    }
   };
+
   return (
     <Box>
-      {faculties.map((faculty) => (
-        <Section
-          title={faculty}
-          items={findItems(faculty)?.professors}
-        ></Section>
-      ))}
+      {faculties.map((category) => {
+        const items = topProfs[category.id];
+        if (!items || items.length === 0) return null; // Skip if not ready or empty
+
+        return (
+          <Section key={category.id} title={category.name} items={items} />
+        );
+      })}
     </Box>
   );
 };
-
-const faculties = ["Nursing", "Business", "Medicine"];
-const data = [
-  {
-    faculty: "Business",
-    professors: [
-      { name: "Prof Jaundice", votes: 10 },
-      { name: "Prof Yam", votes: 3 },
-      { name: "Prof Perk", votes: 2 },
-    ],
-  },
-  {
-    faculty: "Medicine",
-    professors: [
-      { name: "Prof Zwee", votes: 20 },
-      { name: "Prof June", votes: 19 },
-      { name: "Prof Tai", votes: 18 },
-    ],
-  },
-  {
-    faculty: "Nursing",
-    professors: [
-      { name: "Prof Grah", votes: 22 },
-      { name: "Prof Shooby", votes: 21 },
-      { name: "Shazam", votes: -10 },
-    ],
-  },
-];
 
 export default Faculty;

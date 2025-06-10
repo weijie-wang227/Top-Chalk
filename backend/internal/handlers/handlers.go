@@ -154,7 +154,7 @@ func GetProfessorsHandler(db *sql.DB) http.HandlerFunc {
 
 func GetFacultiesHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		const q = `SELECT name FROM faculties`
+		const q = `SELECT id, name FROM faculties`
 
 		rows, err := db.Query(q)
 		if err != nil {
