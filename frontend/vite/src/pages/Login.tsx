@@ -6,6 +6,10 @@ import {
   Typography,
   ToggleButtonGroup,
   ToggleButton,
+  Container,
+  Paper,
+  Stack,
+  Box
 } from "@mui/material";
 
 const Login = () => {
@@ -42,35 +46,72 @@ const Login = () => {
   };
 
   return (
-    <>
-      <TextField
-        value={username}
-        onChange={(e) => setName(e.target.value)}
-      ></TextField>
-      <TextField
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      ></TextField>
-      <Button onClick={handleLogin}>Login</Button>
-      {failedLogins > 0 && (
-        <Typography color="error">
-          Failed login attempts: {failedLogins}
-        </Typography>
-      )}
-      <ToggleButtonGroup
-        value={mode}
-        exclusive
-        onChange={handleToggle}
-        aria-label="change-mode"
-      >
-        <ToggleButton value="student" aria-label="student">
-          Login as Student
-        </ToggleButton>
-        <ToggleButton value="teacher" aria-label="professor">
-          Login as Professor
-        </ToggleButton>
-      </ToggleButtonGroup>
-    </>
+    <Box
+      sx={{
+        mt: "40px",
+        height: "calc(100vh - 40px)",
+        width: "100vw",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <Paper elevation={3} sx={{ padding: 4, mt: 8 }}>
+        <form onSubmit={handleLogin}>
+          <Stack spacing={3}>
+            <Typography variant="h5" textAlign="center">
+              Login
+            </Typography>
+
+            <TextField
+              label="Username"
+              variant="outlined"
+              fullWidth
+              value={username}
+              onChange={(e) => setName(e.target.value)}
+            />
+
+            <TextField
+              label="Password"
+              variant="outlined"
+              type="password"
+              fullWidth
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+
+            <ToggleButtonGroup
+              value={mode}
+              exclusive
+              onChange={handleToggle}
+              aria-label="user mode"
+              fullWidth
+              sx={{ justifyContent: "center" }}
+            >
+              <ToggleButton value="student">Student</ToggleButton>
+              <ToggleButton value="teacher">Professor</ToggleButton>
+            </ToggleButtonGroup>
+
+            {failedLogins > 0 && (
+              <Typography color="error" variant="body2" textAlign="center">
+                Failed login attempts: {failedLogins}
+              </Typography>
+            )}
+
+            <Button type="submit" variant="contained" fullWidth>
+              Login
+            </Button>
+            <Typography variant="body2" align="center">
+              Don't have an account?
+            </Typography>
+            <Button type="submit" variant="contained" fullWidth>
+              Register
+            </Button>
+          </Stack>
+        </form>
+      </Paper>
+    </Box>
   );
 };
+
 export default Login;
