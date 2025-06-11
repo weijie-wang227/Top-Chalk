@@ -13,6 +13,46 @@ type LoginRequest struct {
 	Mode     string `json:"mode"`
 }
 
+type RegisterRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Mode     string `json:"mode"`
+}
+
+func RegisterHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req RegisterRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "Invalid request", http.StatusBadRequest)
+			return
+		}
+
+		var existing int 
+		err := db.QueryRow("SELECT COUNT(*) FROM users WHERE username = ?", req.Username).Scan(&existing)
+		if err != nil {
+			http.Error(w, "Database error", http.StatusInternalServerError)
+			return
+		}
+
+		if existing > 0 {
+			http.Error(w, "User already exists", http.StatusConflict)
+			return
+		}
+
+		_, err = db.Exec("INSERT INTO users (username, password, mode) VALUES (?, ?, ?)",
+			req.Username, req.Password, req.Mode)
+		if err != nil {
+			http.Error(w, "Failed to register user", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{
+			"message": "Registration successful",
+		})
+	}
+}
+
 func LoginHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var creds LoginRequest

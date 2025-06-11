@@ -14,6 +14,7 @@ import Faculty from "./pages/Faculty";
 import Categories from "./pages/Categories";
 import Vote from "./pages/Vote";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 //import Topbar from "./components/Topbar";
 
 export default function App() {
@@ -57,6 +58,7 @@ export default function App() {
           <Route path="/categories" element={<Categories />} />
           <Route path="/vote" element={<Vote />} />
           <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
         </Routes>
       </Box>
     </Box>

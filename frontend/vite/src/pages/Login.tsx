@@ -104,7 +104,7 @@ const Login = () => {
             <Typography variant="body2" align="center">
               Don't have an account?
             </Typography>
-            <Button type="submit" variant="contained" fullWidth>
+            <Button type="submit" variant="contained" fullWidth onClick={() => navigate("/register")}>
               Register
             </Button>
           </Stack>
