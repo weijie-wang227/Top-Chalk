@@ -96,6 +96,15 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 			Expires:  expiry,
 		})
 
+		http.SetCookie(w, &http.Cookie{
+			Name:     "current_user",
+			Value:    creds.Username,
+			Path:     "/",
+			HttpOnly: true,
+			SameSite: http.SameSiteLaxMode,
+			Expires:  expiry,
+		})
+
 		json.NewEncoder(w).Encode(map[string]string{"message": "Login successful"})
 	}
 }
@@ -145,6 +154,25 @@ func AuthStatusHandler(db *sql.DB) http.HandlerFunc {
 					})
 					return
 				}
+
+				http.SetCookie(w, &http.Cookie{
+					Name:     "session_id",
+					Value:    "",
+					Path:     "/",
+					MaxAge:   -1,
+					HttpOnly: true,
+					SameSite: http.SameSiteLaxMode,
+				})
+
+				http.SetCookie(w, &http.Cookie{
+					Name:     "current_user",
+					Value:    "",
+					Path:     "/",
+					MaxAge:   -1,
+					HttpOnly: true,
+					SameSite: http.SameSiteLaxMode,
+				})
+
 			}
 			json.NewEncoder(w).Encode(json.NewEncoder(w).Encode(AuthResponse{
 				UserID: -2,
@@ -186,6 +214,15 @@ func LogoutHandler(db *sql.DB) http.HandlerFunc {
 		// Clear the cookie from the browser
 		http.SetCookie(w, &http.Cookie{
 			Name:     "session_id",
+			Value:    "",
+			Path:     "/",
+			MaxAge:   -1,
+			HttpOnly: true,
+			SameSite: http.SameSiteLaxMode,
+		})
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     "current_user",
 			Value:    "",
 			Path:     "/",
 			MaxAge:   -1,
