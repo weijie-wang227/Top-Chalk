@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 	"time"
-
+	"strconv"
 	"github.com/google/uuid"
 )
 
@@ -241,6 +241,8 @@ type UpvoteRequest struct {
 	CategoryId int `json:"selectedCategory"`
 }
 
+
+
 func UpvoteHandler(db *sql.DB) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -269,14 +271,48 @@ func UpvoteHandler(db *sql.DB) http.HandlerFunc {
 	}
 }
 
+type DownvoteRequest struct {
+	ProfId     int `json:"profId"`
+	CategoryId int `json:"selectedCategory"`
+	SubCategoryId int `json:"selectedSubCategory"`
+}
+
+func DownvoteHandler(db *sql.DB) http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		var downvote DownvoteRequest
+		if err := json.NewDecoder(r.Body).Decode(&downvote); err != nil {
+			http.Error(w, "Invalid request", http.StatusBadRequest)
+			return
+		}
+
+		query:= `
+		INSERT INTO downvotes (id, category_id, sub_category_id, count)
+		VALUES(?, ?, ?, 1)
+		ON DUPLICATE KEY UPDATE count = count + 1;
+		`
+		_, err := db.Exec(query, downvote.ProfId, downvote.SubCategoryId, downvote.CategoryId)
+		if err != nil {
+			log.Printf("Failed to insert or update vote: %v", err)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{
+			"message": "Vote successful",
+		})
+	}
+}
+
+
 type Data struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
 }
 
-func GetCategoriesHandler(db *sql.DB) http.HandlerFunc {
+func GetCategoriesUpHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		const q = `SELECT id, name FROM categories`
+		const q = `SELECT id, name FROM categoriesUp`
 
 		rows, err := db.Query(q)
 		if err != nil {
@@ -304,6 +340,90 @@ func GetCategoriesHandler(db *sql.DB) http.HandlerFunc {
 		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
 
 		if err := json.NewEncoder(w).Encode(categories); err != nil {
+			http.Error(w, "json encode failed", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func GetCategoriesDownHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		const q = `SELECT id, name FROM categoriesDown`
+
+		rows, err := db.Query(q)
+		if err != nil {
+			http.Error(w, "db query failed", http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+
+		var categories []Data
+		for rows.Next() {
+			var category Data
+			if err := rows.Scan(&category.ID, &category.Name); err != nil {
+				http.Error(w, "row scan failed", http.StatusInternalServerError)
+				return
+			}
+			categories = append(categories, category)
+		}
+		if err := rows.Err(); err != nil {
+			http.Error(w, "rows error", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		// If you handle CORS elsewhere (proxy or middleware), delete the next line.
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+
+		if err := json.NewEncoder(w).Encode(categories); err != nil {
+			http.Error(w, "json encode failed", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func GetSubCategoriesHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Extract category_id from query params
+		categoryIDStr := r.URL.Query().Get("category_id")
+		if categoryIDStr == "" {
+			http.Error(w, "category_id is required", http.StatusBadRequest)
+			return
+		}
+
+		categoryID, err := strconv.Atoi(categoryIDStr)
+		if err != nil {
+			http.Error(w, "invalid category_id", http.StatusBadRequest)
+			return
+		}
+
+		const q = `SELECT id, name FROM subCategoriesDown WHERE category_id = ?`
+
+		rows, err := db.Query(q, categoryID)
+		if err != nil {
+			http.Error(w, "db query failed", http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+
+		var subcategories []Data
+		for rows.Next() {
+			var subcategory Data
+			if err := rows.Scan(&subcategory.ID, &subcategory.Name); err != nil {
+				http.Error(w, "row scan failed", http.StatusInternalServerError)
+				return
+			}
+			subcategories = append(subcategories, subcategory)
+		}
+		if err := rows.Err(); err != nil {
+			http.Error(w, "rows error", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+
+		if err := json.NewEncoder(w).Encode(subcategories); err != nil {
 			http.Error(w, "json encode failed", http.StatusInternalServerError)
 			return
 		}
