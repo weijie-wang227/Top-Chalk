@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type LoginRequest struct {
@@ -13,21 +16,15 @@ type LoginRequest struct {
 	Mode     string `json:"mode"`
 }
 
-type RegisterRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Mode     string `json:"mode"`
-}
-
 func RegisterHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req RegisterRequest
+		var req LoginRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, "Invalid request", http.StatusBadRequest)
 			return
 		}
 
-		var existing int 
+		var existing int
 		err := db.QueryRow("SELECT COUNT(*) FROM users WHERE username = ?", req.Username).Scan(&existing)
 		if err != nil {
 			http.Error(w, "Database error", http.StatusInternalServerError)
@@ -61,22 +58,144 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		var storedPassword string
-		err := db.QueryRow("SELECT password FROM users WHERE username = ? AND mode = ? ", creds.Username, creds.Mode).Scan(&storedPassword)
+		var userId int
+		var password string
 
-		if err == sql.ErrNoRows || storedPassword != creds.Password {
+		err := db.QueryRow(
+			"SELECT id, password FROM users WHERE username = ? AND mode = ?",
+			creds.Username, creds.Mode,
+		).Scan(&userId, &password)
+
+		if err == sql.ErrNoRows || password != creds.Password {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		} else if err != nil {
+			http.Error(w, "Server error", http.StatusInternalServerError)
 			return
 		}
 
-		// Success
+		// Generate session token
+		sessionToken := uuid.NewString()
+		expiry := time.Now().Add(24 * time.Hour)
+		_, err = db.Exec(
+			"INSERT INTO sessions (session_id, user_id, mode, expires_at) VALUES (?, ?, ?, ?)",
+			sessionToken, userId, creds.Mode, expiry,
+		)
+		if err != nil {
+			http.Error(w, "Could not create session", http.StatusInternalServerError)
+			return
+		}
+		log.Printf("New Session: %v", sessionToken)
+		// Set session cookie
 		http.SetCookie(w, &http.Cookie{
 			Name:     "session_id",
-			Value:    "some-session-token", // You should generate a real token
+			Value:    sessionToken,
+			Path:     "/",
+			HttpOnly: true,
+			SameSite: http.SameSiteLaxMode,
+			Expires:  expiry,
+		})
+
+		json.NewEncoder(w).Encode(map[string]string{"message": "Login successful"})
+	}
+}
+
+func AuthStatusHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cookie, err := r.Cookie("session_id")
+		type AuthResponse struct {
+			UserID int    `json:"userId"`
+			Mode   string `json:"mode"`
+		}
+
+		if err != nil {
+			log.Printf("No session currently")
+			json.NewEncoder(w).Encode(AuthResponse{
+				UserID: -1,
+				Mode:   "None",
+			})
+			return
+		}
+
+		var userId int
+		var mode string
+		var expiry time.Time
+
+		err = db.QueryRow(
+			"SELECT user_id, mode, expires_at FROM sessions WHERE session_id = ?",
+			cookie.Value,
+		).Scan(&userId, &mode, &expiry)
+
+		if err == sql.ErrNoRows || time.Now().After(expiry) {
+			if err == sql.ErrNoRows {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusInternalServerError)
+				json.NewEncoder(w).Encode(map[string]string{
+					"error": "session doesnt exist",
+				})
+				return
+			} else if time.Now().After(expiry) {
+
+				_, err = db.Exec("DELETE FROM sessions WHERE expires_at = ?", expiry)
+				if err != nil {
+					w.Header().Set("Content-Type", "application/json")
+					w.WriteHeader(http.StatusInternalServerError)
+					json.NewEncoder(w).Encode(map[string]string{
+						"error": err.Error(),
+					})
+					return
+				}
+			}
+			json.NewEncoder(w).Encode(json.NewEncoder(w).Encode(AuthResponse{
+				UserID: -2,
+				Mode:   "None",
+			}))
+			return
+		} else if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		json.NewEncoder(w).Encode(AuthResponse{
+			UserID: userId,
+			Mode:   mode,
+		})
+	}
+}
+
+func LogoutHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Try to get the session cookie
+		cookie, err := r.Cookie("session_id")
+		if err != nil {
+			http.Error(w, "No active session", http.StatusBadRequest)
+			return
+		}
+
+		// Delete the session from the database
+		_, err = db.Exec("DELETE FROM sessions WHERE session_id = ?", cookie.Value)
+		if err != nil {
+			http.Error(w, "Failed to logout", http.StatusInternalServerError)
+			return
+		}
+
+		// Clear the cookie from the browser
+		http.SetCookie(w, &http.Cookie{
+			Name:     "session_id",
+			Value:    "",
+			Path:     "/",
+			MaxAge:   -1,
 			HttpOnly: true,
 			SameSite: http.SameSiteLaxMode,
 		})
-		json.NewEncoder(w).Encode(map[string]string{"message": "Login successful"})
+
+		// Send success message
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]string{"message": "Logged out successfully"})
 	}
 }
 

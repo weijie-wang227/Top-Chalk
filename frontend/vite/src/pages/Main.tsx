@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Typography, Box, Button } from "@mui/material";
-import logo from "../assets/logo.svg";
+import logo from "../assets/TopChalk.png";
 import "./Main.css";
 import { useState } from "react";
 import { useEffect } from "react";
@@ -77,7 +77,7 @@ const Main = () => {
         </Box>
       )}
 
-      {/* Vote Button */}
+      {/* Vote Button 
       <Box sx={{ mt: 6 }}>
         <Button
           variant="contained"
@@ -86,7 +86,7 @@ const Main = () => {
         >
           Vote to see your favourite prof up here
         </Button>
-      </Box>
+      </Box>*/}
     </Box>
   );
 };

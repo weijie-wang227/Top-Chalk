@@ -27,6 +27,14 @@ func CreateTables(db *sql.DB) error {
 		password VARCHAR(255) NOT NULL,
 		mode VARCHAR(255) NOT NULL
 	);`
+	createSessionsQuery := `
+	CREATE TABLE IF NOT EXISTS sessions (
+		session_id VARCHAR(255) PRIMARY KEY,
+		user_id INT NOT NULL,
+		mode VARCHAR(50) NOT NULL,
+		expires_at DATETIME NOT NULL,
+		FOREIGN KEY (user_id) REFERENCES users(id)
+	);`
 	createFaculties := `
 	CREATE TABLE IF NOT EXISTS faculties (
     	id INT AUTO_INCREMENT PRIMARY KEY,
@@ -61,6 +69,13 @@ func CreateTables(db *sql.DB) error {
 		return err
 	}
 	log.Println("Users table exists or created.")
+
+	_, err = db.Exec(createSessionsQuery)
+	if err != nil {
+		log.Printf("Failed to create sessions table: %v", err)
+		return err
+	}
+	log.Println("Sessions table exists or created.")
 
 	_, err = db.Exec(createFaculties)
 	if err != nil {

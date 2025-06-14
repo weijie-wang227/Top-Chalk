@@ -8,7 +8,7 @@ import {
   ListItemButton,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Main from "./pages/Main";
 import Faculty from "./pages/Faculty";
 import Categories from "./pages/Categories";
@@ -19,10 +19,53 @@ import Register from "./pages/Register";
 
 export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [mode, setMode] = useState("None");
 
   const toggleDrawer = (open: boolean) => () => {
     setDrawerOpen(open);
   };
+
+  const checkAuth = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/auth/request", {
+        method: "GET",
+        credentials: "include", // include session cookie
+      });
+      const data = await res.json();
+      console.log(data);
+
+      if (!res.ok) {
+        console.error("Auth error:", data.error);
+        throw new Error("Not authenticated");
+      }
+      setMode(data.mode);
+    } catch (err) {
+      console.error("Auth check failed:", err);
+      setMode("None");
+    }
+  };
+
+  const logout = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        console.log("Logged out successfully");
+      } else {
+        console.error("Logout failed");
+      }
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+  };
+
+  useEffect(() => {
+    checkAuth();
+    console.log("update");
+  }, [drawerOpen]);
 
   return (
     <Box display="flex" height="100vh">
@@ -38,12 +81,23 @@ export default function App() {
             <ListItemButton component={Link} to="/faculty">
               <ListItemText primary="Faculties" />
             </ListItemButton>
-            <ListItemButton component={Link} to="/vote">
-              <ListItemText primary="Vote" />
-            </ListItemButton>
-            <ListItemButton component={Link} to="/login">
-              <ListItemText primary="Login" />
-            </ListItemButton>
+            {mode == "student" && (
+              <ListItemButton component={Link} to="/vote">
+                <ListItemText primary="Vote" />
+              </ListItemButton>
+            )}
+
+            {mode == "None" ? (
+              <>
+                <ListItemButton component={Link} to="/login">
+                  <ListItemText primary="Login" />
+                </ListItemButton>
+              </>
+            ) : (
+              <ListItemButton onClick={logout}>
+                <ListItemText primary="Logout" />
+              </ListItemButton>
+            )}
           </List>
         </Box>
       </Drawer>
@@ -56,9 +110,13 @@ export default function App() {
           <Route path="/" element={<Main />} />
           <Route path="/faculty" element={<Faculty />} />
           <Route path="/categories" element={<Categories />} />
-          <Route path="/vote" element={<Vote />} />
-          <Route path="login" element={<Login />} />
-          <Route path="register" element={<Register />} />
+          {mode == "None" && (
+            <>
+              <Route path="/vote" element={<Vote />} />
+              <Route path="login" element={<Login />} />
+              <Route path="register" element={<Register />} />
+            </>
+          )}
         </Routes>
       </Box>
     </Box>
