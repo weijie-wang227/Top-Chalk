@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"time"
 	"strconv"
+	"time"
+
 	"github.com/google/uuid"
 )
 
@@ -241,8 +242,6 @@ type UpvoteRequest struct {
 	CategoryId int `json:"selectedCategory"`
 }
 
-
-
 func UpvoteHandler(db *sql.DB) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -273,8 +272,7 @@ func UpvoteHandler(db *sql.DB) http.HandlerFunc {
 
 type DownvoteRequest struct {
 	ProfId     int `json:"profId"`
-	CategoryId int `json:"selectedCategory"`
-	SubCategoryId int `json:"selectedSubCategory"`
+	DownvoteId int `json:"selectedSubCategory"`
 }
 
 func DownvoteHandler(db *sql.DB) http.HandlerFunc {
@@ -286,12 +284,12 @@ func DownvoteHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		query:= `
-		INSERT INTO downvotes (id, category_id, sub_category_id, count)
-		VALUES(?, ?, ?, 1)
+		query := `
+		INSERT INTO downvotes (id, downvote_id, count)
+		VALUES(?, ?, 1)
 		ON DUPLICATE KEY UPDATE count = count + 1;
 		`
-		_, err := db.Exec(query, downvote.ProfId, downvote.CategoryId, downvote.SubCategoryId)
+		_, err := db.Exec(query, downvote.ProfId, downvote.DownvoteId)
 		if err != nil {
 			log.Printf("Failed to insert or update vote: %v", err)
 			return
@@ -303,7 +301,6 @@ func DownvoteHandler(db *sql.DB) http.HandlerFunc {
 		})
 	}
 }
-
 
 type Data struct {
 	ID   int    `json:"id"`
@@ -387,12 +384,14 @@ func GetSubCategoriesHandler(db *sql.DB) http.HandlerFunc {
 		// Extract category_id from query params
 		categoryIDStr := r.URL.Query().Get("category_id")
 		if categoryIDStr == "" {
+			log.Printf("no cat_id")
 			http.Error(w, "category_id is required", http.StatusBadRequest)
 			return
 		}
 
 		categoryID, err := strconv.Atoi(categoryIDStr)
 		if err != nil {
+			log.Printf(err.Error())
 			http.Error(w, "invalid category_id", http.StatusBadRequest)
 			return
 		}
