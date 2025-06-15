@@ -8,7 +8,7 @@ interface Data {
   name: string;
 }
 
-const Vote = () => {
+const Upvote = () => {
   const navigate = useNavigate();
   const [selectedProf, setProf] = useState<Data>({ id: -1, name: "null" });
   const [selectedCategory, setCategory] = useState(0);
@@ -113,4 +113,4 @@ const Vote = () => {
   );
 };
 
-export default Vote;
+export default Upvote;

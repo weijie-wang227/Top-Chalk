@@ -12,7 +12,8 @@ import { useEffect, useState } from "react";
 import Main from "./pages/Main";
 import Faculty from "./pages/Faculty";
 import Categories from "./pages/Categories";
-import Vote from "./pages/Vote";
+import Upvote from "./pages/Upvote";
+import Downvote from "./pages/Downvote";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 //import Topbar from "./components/Topbar";
@@ -82,9 +83,14 @@ export default function App() {
               <ListItemText primary="Faculties" />
             </ListItemButton>
             {mode == "student" && (
-              <ListItemButton component={Link} to="/vote">
-                <ListItemText primary="Vote" />
-              </ListItemButton>
+              <>
+                <ListItemButton component={Link} to="/upvote">
+                  <ListItemText primary="Upvote" />
+                </ListItemButton>
+                <ListItemButton component={Link} to="/downvote">
+                  <ListItemText primary="Downvote" />
+                </ListItemButton>
+              </>
             )}
 
             {mode == "None" ? (
@@ -110,9 +116,14 @@ export default function App() {
           <Route path="/" element={<Main />} />
           <Route path="/faculty" element={<Faculty />} />
           <Route path="/categories" element={<Categories />} />
+          {mode == "student" && (
+            <>
+              <Route path="/upvote" element={<Upvote />} />
+              <Route path="/downvote" element={<Downvote />} />
+            </>
+          )}
           {mode == "None" && (
             <>
-              <Route path="/vote" element={<Vote />} />
               <Route path="login" element={<Login />} />
               <Route path="register" element={<Register />} />
             </>
