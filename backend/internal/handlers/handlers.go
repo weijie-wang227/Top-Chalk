@@ -291,7 +291,7 @@ func DownvoteHandler(db *sql.DB) http.HandlerFunc {
 		VALUES(?, ?, ?, 1)
 		ON DUPLICATE KEY UPDATE count = count + 1;
 		`
-		_, err := db.Exec(query, downvote.ProfId, downvote.SubCategoryId, downvote.CategoryId)
+		_, err := db.Exec(query, downvote.ProfId, downvote.CategoryId, downvote.SubCategoryId)
 		if err != nil {
 			log.Printf("Failed to insert or update vote: %v", err)
 			return
