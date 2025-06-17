@@ -16,7 +16,6 @@ import Upvote from "./pages/Upvote";
 import Downvote from "./pages/Downvote";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-//import Topbar from "./components/Topbar";
 
 export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
