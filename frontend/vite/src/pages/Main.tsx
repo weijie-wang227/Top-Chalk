@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Typography, Box, Button } from "@mui/material";
+import { Typography, Box } from "@mui/material";
 import logo from "../assets/TopChalk.png";
 import "./Main.css";
 import { useState } from "react";

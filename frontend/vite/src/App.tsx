@@ -103,7 +103,7 @@ export default function App() {
                 <ListItemText primary="Login" />
               </ListItemButton>
             ) : (
-              <ListItemButton onClick={logout}>
+              <ListItemButton onClick={logout} component={Link} to="/login">
                 <ListItemText primary="Logout" />
               </ListItemButton>
             )}
