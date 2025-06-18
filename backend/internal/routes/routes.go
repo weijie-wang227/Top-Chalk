@@ -27,5 +27,9 @@ func NewRouter(db *sql.DB) *mux.Router {
 	r.HandleFunc("/top3categories", handlers.GetTop3ByCategoryHandler(db)).Methods("GET")
 	r.HandleFunc("/top3faculties", handlers.GetTop3ByFacultyHandler(db)).Methods("GET")
 
+	r.HandleFunc("/bestCategories", handlers.GetBestCategories(db)).Methods("GET")
+	r.HandleFunc("/worstCategories", handlers.GetWorstCategories(db)).Methods("GET")
+	r.HandleFunc("/getName", handlers.GetNameHandler(db)).Methods("GET")
+
 	return r
 }

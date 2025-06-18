@@ -672,3 +672,179 @@ func GetTop3ByFacultyHandler(db *sql.DB) http.HandlerFunc {
 		}
 	}
 }
+
+func GetBestCategories(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		teacherID, ok := r.URL.Query()["id"]
+		if !ok || len(teacherID[0]) < 1 {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error": "teacher_id parameter is missing",
+			})
+			return
+		}
+
+		teacherIDInt, err := strconv.Atoi(teacherID[0])
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error": "invalid teacher_id",
+			})
+			return
+		}
+
+		const query = `
+		SELECT c.name 
+		FROM votes v 
+		JOIN categories c ON v.category_id = c.id 
+		WHERE v.id = ? 
+		GROUP BY c.name 
+		ORDER BY SUM(v.count) DESC 
+		LIMIT 3;
+	`
+
+		rows, err := db.Query(query, teacherIDInt)
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error": "DB query failed",
+			})
+			return
+		}
+		defer rows.Close()
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+
+		var results []string
+
+		for rows.Next() {
+			var result string
+			if err := rows.Scan(&result); err != nil {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusInternalServerError)
+				json.NewEncoder(w).Encode(map[string]string{
+					"error": "Row scan failed",
+				})
+				return
+			}
+			results = append(results, result)
+		}
+
+		if err := json.NewEncoder(w).Encode(map[string][]string{
+			"items": results,
+		}); err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error": "JSON encode failed",
+			})
+		}
+	}
+
+}
+
+type WorstData struct {
+	Name     string `json:"content"`
+	Category string `json:"category"`
+	Votes    int    `json:"votes"`
+}
+
+func GetWorstCategories(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		teacherID, ok := r.URL.Query()["id"]
+		if !ok || len(teacherID) < 1 {
+			http.Error(w, "teacher_id parameter is missing", http.StatusBadRequest)
+			return
+		}
+
+		id, err := strconv.Atoi(teacherID[0])
+		if err != nil {
+			http.Error(w, "Invalid teacher_id", http.StatusBadRequest)
+			return
+		}
+
+		const query = `
+        SELECT
+			cd.name AS category_name,
+			COUNT(d.id) AS total_votes,
+			(
+				SELECT sd2.name
+				FROM subcategoriesdown sd2
+				JOIN downvotes d2 ON sd2.id = d2.downvote_id
+				WHERE sd2.category_id = cd.id
+				AND d2.id = ?
+				GROUP BY sd2.id, sd2.name
+				ORDER BY COUNT(*) DESC
+				LIMIT 1
+			) AS top_subcategory
+			FROM categoriesdown cd
+			JOIN subcategoriesdown sd ON cd.id = sd.category_id
+			JOIN downvotes d ON sd.id = d.downvote_id
+			WHERE d.id = ?
+			GROUP BY cd.id, cd.name;`
+
+		rows, err := db.Query(query, id, id)
+		if err != nil {
+			http.Error(w, "DB query failed", http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+
+		var results []WorstData
+		for rows.Next() {
+			var result WorstData
+			if err := rows.Scan(&result.Category, &result.Votes, &result.Name); err != nil {
+				http.Error(w, "Row scan failed", http.StatusInternalServerError)
+				return
+			}
+			results = append(results, result)
+		}
+
+		if err := json.NewEncoder(w).Encode(results); err != nil {
+			http.Error(w, "JSON encode failed", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func GetNameHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		teacherID, ok := r.URL.Query()["id"]
+		if !ok || len(teacherID) < 1 {
+			http.Error(w, "teacher_id parameter is missing", http.StatusBadRequest)
+			return
+		}
+
+		id, err := strconv.Atoi(teacherID[0])
+		if err != nil {
+			http.Error(w, "Invalid teacher_id", http.StatusBadRequest)
+			return
+		}
+
+		const query = `SELECT name FROM teachers WHERE id = ?`
+
+		var name string
+		err = db.QueryRow(query, id).Scan(&name)
+
+		if err == sql.ErrNoRows {
+			http.Error(w, "DB query failed", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+		if err := json.NewEncoder(w).Encode(map[string]string{
+			"name": name,
+		}); err != nil {
+			http.Error(w, "JSON encode failed", http.StatusInternalServerError)
+			return
+		}
+	}
+}
