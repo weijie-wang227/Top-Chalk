@@ -116,6 +116,7 @@ func AuthStatusHandler(db *sql.DB) http.HandlerFunc {
 		type AuthResponse struct {
 			UserID int    `json:"userId"`
 			Mode   string `json:"mode"`
+			Username string `json:"username"`
 		}
 
 		if err != nil {
@@ -123,6 +124,7 @@ func AuthStatusHandler(db *sql.DB) http.HandlerFunc {
 			json.NewEncoder(w).Encode(AuthResponse{
 				UserID: -1,
 				Mode:   "None",
+				Username : "",
 			})
 			return
 		}
@@ -130,11 +132,12 @@ func AuthStatusHandler(db *sql.DB) http.HandlerFunc {
 		var userId int
 		var mode string
 		var expiry time.Time
+		var username string
 
 		err = db.QueryRow(
-			"SELECT user_id, mode, expires_at FROM sessions WHERE session_id = ?",
+			"SELECT s.user_id, s.mode, s.expires_at, u.username FROM sessions s JOIN users u ON s.user_id = u.id WHERE session_id = ?",
 			cookie.Value,
-		).Scan(&userId, &mode, &expiry)
+		).Scan(&userId, &mode, &expiry, &username)
 
 		if err == sql.ErrNoRows || time.Now().After(expiry) {
 			if err == sql.ErrNoRows {
@@ -178,6 +181,7 @@ func AuthStatusHandler(db *sql.DB) http.HandlerFunc {
 			json.NewEncoder(w).Encode(json.NewEncoder(w).Encode(AuthResponse{
 				UserID: -2,
 				Mode:   "None",
+				Username: "",
 			}))
 			return
 		} else if err != nil {
@@ -192,6 +196,7 @@ func AuthStatusHandler(db *sql.DB) http.HandlerFunc {
 		json.NewEncoder(w).Encode(AuthResponse{
 			UserID: userId,
 			Mode:   mode,
+			Username: username,
 		})
 	}
 }

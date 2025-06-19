@@ -16,6 +16,28 @@ const Main = () => {
 
   const [data, setData] = useState<Teacher[] | null>(null);
 
+  const [username, setUsername] = useState("");
+
+  const checkAuth = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/auth/request", {
+        method: "GET",
+        credentials: "include", // include session cookie
+      });
+      const data = await res.json();
+      console.log(data);
+
+      if (!res.ok) {
+        console.error("Auth error:", data.error);
+        throw new Error("Not authenticated");
+      }
+      setUsername(data.username);
+    } catch (err) {
+      console.error("Auth check failed:", err);
+      setUsername("");
+    }
+  };
+
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
@@ -23,6 +45,7 @@ const Main = () => {
         if (!res.ok) throw new Error("Failed to fetch leaderboard");
         const leaderboardData: Teacher[] = await res.json();
         setData(leaderboardData);
+        checkAuth();
       } catch (err: any) {
         console.log("Failed to load:" + err);
       }
@@ -33,6 +56,22 @@ const Main = () => {
 
   return (
     <Box sx={{ p: 4, textAlign: "center" }}>
+      {/* Username Top Right */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "flex-end",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
+        {username && (
+          <Typography variant="subtitle1" color="text.secondary">
+            Welcome <strong>{username}</strong>
+          </Typography>
+        )}
+      </Box>
+
       {/* TopChalk Intro */}
       <Box sx={{ mb: 5 }}>
         <img
@@ -76,17 +115,6 @@ const Main = () => {
           </div>
         </Box>
       )}
-
-      {/* Vote Button 
-      <Box sx={{ mt: 6 }}>
-        <Button
-          variant="contained"
-          size="large"
-          onClick={() => navigate("/vote")}
-        >
-          Vote to see your favourite prof up here
-        </Button>
-      </Box>*/}
     </Box>
   );
 };
