@@ -270,6 +270,66 @@ func UpvoteHandler(db *sql.DB) http.HandlerFunc {
 	}
 }
 
+type ProfImageResponse struct {
+	ImageURL string `json:"imageUrl"`
+}
+
+func GetProfImageHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		profIdStr := r.URL.Query().Get("profId")
+		profId, err := strconv.Atoi(profIdStr)
+		if err != nil {
+			http.Error(w, "Invalid or missing profId", http.StatusBadRequest)
+			return
+		}
+
+		var imageURL string
+		query := `SELECT image_url FROM teachers_img WHERE id = ?`
+		err = db.QueryRow(query, profId).Scan(&imageURL)
+		if err == sql.ErrNoRows {
+			http.Error(w, "Image not found", http.StatusNotFound)
+			return
+		} else if err != nil {
+			http.Error(w, "Server error", http.StatusInternalServerError)
+			return
+		}
+
+		resp := ProfImageResponse{ImageURL: imageURL}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(resp)
+	}
+}
+
+type ProfInfo struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+func GetProfInfoHandler(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		profIdStr := r.URL.Query().Get("profId")
+		profId, err := strconv.Atoi(profIdStr)
+		if err != nil {
+			http.Error(w, "Invalid or missing profId", http.StatusBadRequest)
+			return
+		}
+
+		var info ProfInfo
+		query := `SELECT id, name FROM teachers WHERE id = ?`
+		err = db.QueryRow(query, profId).Scan(&info.ID, &info.Name)
+		if err == sql.ErrNoRows {
+			http.Error(w, "Professor not found", http.StatusNotFound)
+			return
+		} else if err != nil {
+			http.Error(w, "Server error", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(info)
+	}
+}
+
 type DownvoteRequest struct {
 	ProfId     int `json:"profId"`
 	DownvoteId int `json:"selectedSubCategory"`
@@ -309,7 +369,7 @@ type Data struct {
 
 func GetCategoriesUpHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		const q = `SELECT id, name FROM categoriesUp`
+		const q = `SELECT id, name FROM categories`
 
 		rows, err := db.Query(q)
 		if err != nil {
@@ -345,7 +405,7 @@ func GetCategoriesUpHandler(db *sql.DB) http.HandlerFunc {
 
 func GetCategoriesDownHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		const q = `SELECT id, name FROM categoriesDown`
+		const q = `SELECT id, name FROM categoriesdown`
 
 		rows, err := db.Query(q)
 		if err != nil {
@@ -396,7 +456,7 @@ func GetSubCategoriesHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		const q = `SELECT id, name FROM subCategoriesDown WHERE category_id = ?`
+		const q = `SELECT id, name FROM subcategoriesdown WHERE category_id = ?`
 
 		rows, err := db.Query(q, categoryID)
 		if err != nil {

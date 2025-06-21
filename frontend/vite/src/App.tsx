@@ -12,12 +12,11 @@ import { useEffect, useState } from "react";
 import Main from "./pages/Main";
 import Faculty from "./pages/Faculty";
 import Categories from "./pages/Categories";
-import Upvote from "./pages/Upvote";
-import Downvote from "./pages/Downvote";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
-//import Topbar from "./components/Topbar";
+import ProfessorPage from "./pages/ProfessorPage";
+import Vote from "./pages/Vote";
 
 export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -84,11 +83,8 @@ export default function App() {
             </ListItemButton>
             {mode == "student" && (
               <>
-                <ListItemButton component={Link} to="/upvote">
-                  <ListItemText primary="Upvote" />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/downvote">
-                  <ListItemText primary="Downvote" />
+                <ListItemButton component={Link} to="/vote">
+                  <ListItemText primary="Vote" />
                 </ListItemButton>
               </>
             )}
@@ -121,8 +117,7 @@ export default function App() {
           <Route path="/categories" element={<Categories />} />
           {mode == "student" && (
             <>
-              <Route path="/upvote" element={<Upvote />} />
-              <Route path="/downvote" element={<Downvote />} />
+              <Route path="/vote" element={<Vote />} />
             </>
           )}
           {mode == "None" && (
@@ -134,6 +129,7 @@ export default function App() {
           {mode == "teacher" && (
             <Route path="dashboard" element={<Dashboard />} />
           )}
+          <Route path="/professor/:id" element={<ProfessorPage />} />
         </Routes>
       </Box>
     </Box>

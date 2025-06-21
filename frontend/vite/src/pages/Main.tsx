@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import { Typography, Box } from "@mui/material";
 import logo from "../assets/TopChalk.png";
 import "./Main.css";
@@ -12,7 +11,6 @@ interface Teacher {
 }
 
 const Main = () => {
-  const navigate = useNavigate();
 
   const [data, setData] = useState<Teacher[] | null>(null);
 
