@@ -31,5 +31,8 @@ func NewRouter(db *sql.DB) *mux.Router {
 	r.HandleFunc("/worstCategories", handlers.GetWorstCategories(db)).Methods("GET")
 	r.HandleFunc("/getName", handlers.GetNameHandler(db)).Methods("GET")
 
+	r.HandleFunc("/upload", handlers.UploadAvatarHandler(db)).Methods("POST")
+	r.HandleFunc("/avatarUrl", handlers.GetAvatarUrl(db)).Methods("GET")
+
 	return r
 }

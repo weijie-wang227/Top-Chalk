@@ -314,6 +314,7 @@ func GetCategoriesUpHandler(db *sql.DB) http.HandlerFunc {
 		rows, err := db.Query(q)
 		if err != nil {
 			http.Error(w, "db query failed", http.StatusInternalServerError)
+			log.Printf("DB query failed")
 			return
 		}
 		defer rows.Close()
@@ -323,12 +324,14 @@ func GetCategoriesUpHandler(db *sql.DB) http.HandlerFunc {
 			var category Data
 			if err := rows.Scan(&category.ID, &category.Name); err != nil {
 				http.Error(w, "row scan failed", http.StatusInternalServerError)
+				log.Printf("Row scan failed")
 				return
 			}
 			categories = append(categories, category)
 		}
 		if err := rows.Err(); err != nil {
 			http.Error(w, "rows error", http.StatusInternalServerError)
+			log.Printf("Rows Error")
 			return
 		}
 
@@ -391,7 +394,6 @@ func GetSubCategoriesHandler(db *sql.DB) http.HandlerFunc {
 
 		categoryID, err := strconv.Atoi(categoryIDStr)
 		if err != nil {
-			log.Printf(err.Error())
 			http.Error(w, "invalid category_id", http.StatusBadRequest)
 			return
 		}
@@ -698,7 +700,7 @@ func GetBestCategories(db *sql.DB) http.HandlerFunc {
 		const query = `
 		SELECT c.name 
 		FROM votes v 
-		JOIN categories c ON v.category_id = c.id 
+		JOIN categoriesUp c ON v.category_id = c.id 
 		WHERE v.id = ? 
 		GROUP BY c.name 
 		ORDER BY SUM(v.count) DESC 
@@ -846,5 +848,44 @@ func GetNameHandler(db *sql.DB) http.HandlerFunc {
 			http.Error(w, "JSON encode failed", http.StatusInternalServerError)
 			return
 		}
+	}
+}
+
+func GetAvatarUrl(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		teacherID, ok := r.URL.Query()["id"]
+		if !ok || len(teacherID) < 1 {
+			http.Error(w, "teacher_id parameter is missing", http.StatusBadRequest)
+			log.Printf("teacher_id missing")
+			return
+		}
+
+		id, err := strconv.Atoi(teacherID[0])
+		if err != nil {
+			http.Error(w, "Invalid teacher_id", http.StatusBadRequest)
+			log.Printf("teacher_id invalid")
+			return
+		}
+
+		const query = `SELECT avatar_url FROM teachers WHERE id = ?`
+
+		var url string
+		err = db.QueryRow(query, id).Scan(&url)
+
+		if err == sql.ErrNoRows {
+			http.Error(w, "DB query failed", http.StatusInternalServerError)
+			log.Printf("DB query failed")
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+		if err := json.NewEncoder(w).Encode(map[string]string{
+			"url": url,
+		}); err != nil {
+			http.Error(w, "JSON encode failed", http.StatusInternalServerError)
+			return
+		}
+
 	}
 }

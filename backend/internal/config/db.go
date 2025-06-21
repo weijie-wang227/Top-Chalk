@@ -41,7 +41,7 @@ func CreateTables(db *sql.DB) error {
     	name VARCHAR(100) NOT NULL
 	);`
 	createCategoriesUp := `
-	CREATE TABLE IF NOT EXISTS categories (
+	CREATE TABLE IF NOT EXISTS categoriesUp (
 		id INT AUTO_INCREMENT PRIMARY KEY,
 		name VARCHAR(100) NOT NULL
 	);`
@@ -62,6 +62,7 @@ func CreateTables(db *sql.DB) error {
 		id INT NOT NULL,
 		faculty_id INT NOT NULL,
 		name VARCHAR(255) NOT NULL,
+		avatar_url VARCHAR(255),
 		FOREIGN KEY (id) REFERENCES users(id) ON DELETE CASCADE,
 		FOREIGN KEY (faculty_id) REFERENCES faculties(id) ON DELETE CASCADE
 	);`
