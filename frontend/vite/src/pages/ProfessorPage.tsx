@@ -19,11 +19,16 @@ import {
 interface Data {
   id: number;
   name: string;
+  faculty: string;
 }
 
 const ProfessorPage = () => {
   const { id } = useParams();
-  const [professor, setProfessor] = useState<Data>({ id: -1, name: "Loading..." });
+  const [professor, setProfessor] = useState<Data>({
+    id: -1,
+    name: "Loading...",
+    faculty: "...",
+  });
 
   const [selectedCategory, setCategory] = useState(0);
   const [allCategories, setCategories] = useState<Data[]>([]);
@@ -82,7 +87,9 @@ const ProfessorPage = () => {
     const fetchSubCat = async () => {
       try {
         const res = await fetch(
-          `http://localhost:8080/subcategories?category_id=${encodeURIComponent(selectedDownCategory)}`
+          `http://localhost:8080/subcategories?category_id=${encodeURIComponent(
+            selectedDownCategory
+          )}`
         );
         if (!res.ok) throw new Error("Failed to fetch downvotes");
         const data: Data[] = await res.json();
@@ -138,8 +145,12 @@ const ProfessorPage = () => {
         <Typography variant="h4" fontWeight="bold" textAlign="center">
           {professor.name}
         </Typography>
-        <Typography variant="subtitle1" textAlign="center" color="text.secondary">
-          Professor ID: {professor.id}
+        <Typography
+          variant="subtitle1"
+          textAlign="center"
+          color="text.secondary"
+        >
+          Faculty: {professor.faculty}
         </Typography>
       </Card>
 
@@ -149,7 +160,12 @@ const ProfessorPage = () => {
           Positive Feedback
         </Typography>
         <Divider sx={{ mb: 2 }} />
-        <Stack direction="row" spacing={2} flexWrap="wrap" justifyContent="center">
+        <Stack
+          direction="row"
+          spacing={2}
+          flexWrap="wrap"
+          justifyContent="center"
+        >
           {allCategories.map((category) => (
             <Chip
               key={category.id}
@@ -180,13 +196,21 @@ const ProfessorPage = () => {
           Complaints / Negative Feedback
         </Typography>
         <Divider sx={{ mb: 2 }} />
-        <Stack direction="row" spacing={2} flexWrap="wrap" justifyContent="center" mb={3}>
+        <Stack
+          direction="row"
+          spacing={2}
+          flexWrap="wrap"
+          justifyContent="center"
+          mb={3}
+        >
           {allDownCategories.map((category) => (
             <Chip
               key={category.id}
               label={category.name}
               variant="filled"
-              color={selectedDownCategory === category.id ? "primary" : "default"}
+              color={
+                selectedDownCategory === category.id ? "primary" : "default"
+              }
               onClick={() => onSelectDownCategory(category.id)}
               clickable
               sx={{ m: 1 }}

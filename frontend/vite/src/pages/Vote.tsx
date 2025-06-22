@@ -1,16 +1,11 @@
-import {
-  Box,
-  TextField,
-  Typography,
-  Card,
-  CardContent,
-} from "@mui/material";
+import { Box, TextField, Typography, Card, CardContent } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface Data {
   id: number;
   name: string;
+  faculty: string;
 }
 
 const Vote = () => {
@@ -30,6 +25,7 @@ const Vote = () => {
         if (!res.ok) throw new Error("Failed to fetch professors");
         const data: Data[] = await res.json();
         setProfessors(data);
+        console.log(data);
       } catch (err) {
         console.error("Error:", err);
       }
@@ -45,20 +41,21 @@ const Vote = () => {
       await Promise.all(
         profs.map(async (prof) => {
           try {
-            const image = await fetch(
-              `http://localhost:8080/images?profId=${prof.id}`,
+            const res = await fetch(
+              `http://localhost:8080/avatarUrl?id=${prof.id}`,
               {
                 method: "GET",
                 credentials: "include",
               }
             );
+            const data = await res.json();
 
-            if (image.ok) {
-              const data = await image.json();
-              map[prof.id] = data.imageUrl;
-            } else {
+            if (!res.ok) {
+              console.error("Image error:", data.error);
               map[prof.id] = "/placeholder.jpg";
+              throw new Error("Cannot fetch avatar Url");
             }
+            map[prof.id] = data.url;
           } catch (err) {
             console.error(`Failed to load image for ${prof.name}`, err);
             map[prof.id] = "/placeholder.jpg";
@@ -149,7 +146,7 @@ const Vote = () => {
                         {prof.name}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        ID: {prof.id}
+                        Faculty: {prof.faculty}
                       </Typography>
                     </CardContent>
                   </Card>

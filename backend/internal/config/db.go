@@ -66,13 +66,6 @@ func CreateTables(db *sql.DB) error {
 		FOREIGN KEY (id) REFERENCES users(id) ON DELETE CASCADE,
 		FOREIGN KEY (faculty_id) REFERENCES faculties(id) ON DELETE CASCADE
 	);`
-	createTeachersImgQuery := `
-	CREATE TABLE IF NOT EXISTS teachers_img (
-  		id INT NOT NULL,
-  		img_url VARCHAR(255) NOT NULL,
-  		PRIMARY KEY (id),
-  		FOREIGN KEY (id) REFERENCES teachers(id) ON DELETE CASCADE
-	);`
 	createVotesQuery := `
 	CREATE TABLE IF NOT EXISTS votes (
 		id INT NOT NULL,
@@ -156,13 +149,6 @@ func CreateTables(db *sql.DB) error {
 		return err
 	}
 	log.Println("downvotes table exists or created.")
-	
-	_, err = db.Exec(createTeachersImgQuery)
-	if (err != nil) {
-		log.Printf("Failed to create images table: %v", err)
-		return err
-	}
-	log.Println("Images table exists or created.")
-	
+
 	return nil
 }

@@ -270,41 +270,6 @@ func UpvoteHandler(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-type ProfImageResponse struct {
-	ImageURL string `json:"imageUrl"`
-}
-
-func GetProfImageHandler(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		profIdStr := r.URL.Query().Get("profId")
-		profId, err := strconv.Atoi(profIdStr)
-		if err != nil {
-			http.Error(w, "Invalid or missing profId", http.StatusBadRequest)
-			return
-		}
-
-		var imageURL string
-		query := `SELECT image_url FROM teachers_img WHERE id = ?`
-		err = db.QueryRow(query, profId).Scan(&imageURL)
-		if err == sql.ErrNoRows {
-			http.Error(w, "Image not found", http.StatusNotFound)
-			return
-		} else if err != nil {
-			http.Error(w, "Server error", http.StatusInternalServerError)
-			return
-		}
-
-		resp := ProfImageResponse{ImageURL: imageURL}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
-	}
-}
-
-type ProfInfo struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
-
 func GetProfInfoHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		profIdStr := r.URL.Query().Get("profId")
@@ -315,13 +280,15 @@ func GetProfInfoHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		var info ProfInfo
-		query := `SELECT id, name FROM teachers WHERE id = ?`
-		err = db.QueryRow(query, profId).Scan(&info.ID, &info.Name)
+		query := `SELECT teachers.id, teachers.name, faculties.name FROM teachers JOIN faculties ON faculties.id = teachers.faculty_id  WHERE teachers.id = ?`
+		err = db.QueryRow(query, profId).Scan(&info.ProfId, &info.ProfName, &info.Faculty)
 		if err == sql.ErrNoRows {
 			http.Error(w, "Professor not found", http.StatusNotFound)
+			log.Printf("Prof not found")
 			return
 		} else if err != nil {
 			http.Error(w, "Server error", http.StatusInternalServerError)
+			log.Printf(err.Error())
 			return
 		}
 
@@ -369,7 +336,7 @@ type Data struct {
 
 func GetCategoriesUpHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		const q = `SELECT id, name FROM categories`
+		const q = `SELECT id, name FROM categoriesUp`
 
 		rows, err := db.Query(q)
 		if err != nil {
@@ -491,24 +458,31 @@ func GetSubCategoriesHandler(db *sql.DB) http.HandlerFunc {
 	}
 }
 
+type ProfInfo struct {
+	ProfId   int    `json:"id"`
+	ProfName string `json:"name"`
+	Faculty  string `json:"faculty"`
+}
+
 func GetProfessorsHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const q = `
-			SELECT teachers.id, teachers.name
-			FROM teachers
+			SELECT teachers.id, teachers.name, faculties.name
+			FROM teachers JOIN faculties ON teachers.faculty_id = faculties.id
 		`
 
 		rows, err := db.Query(q)
 		if err != nil {
 			http.Error(w, "db query failed", http.StatusInternalServerError)
+			log.Printf(err.Error())
 			return
 		}
 		defer rows.Close()
 
-		var teachers []Data
+		var teachers []ProfInfo
 		for rows.Next() {
-			var t Data
-			if err := rows.Scan(&t.ID, &t.Name); err != nil {
+			var t ProfInfo
+			if err := rows.Scan(&t.ProfId, &t.ProfName, &t.Faculty); err != nil {
 				http.Error(w, "row scan failed", http.StatusInternalServerError)
 				return
 			}
