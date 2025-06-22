@@ -19,7 +19,7 @@
 -- Table structure for table `categories`
 --
 
-DROP TABLE IF EXISTS `categories`;
+DROP TABLE IF EXISTS `categoriesUp`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `categories` (
@@ -33,7 +33,7 @@ CREATE TABLE `categories` (
 -- Dumping data for table `categories`
 --
 
-LOCK TABLES `categories` WRITE;
+LOCK TABLES `categoriesUp` WRITE;
 /*!40000 ALTER TABLE `categories` DISABLE KEYS */;
 INSERT INTO `categories` VALUES (1,'Funniest'),(2,'Most Approachable'),(3,'Most Iconic');
 /*!40000 ALTER TABLE `categories` ENABLE KEYS */;
