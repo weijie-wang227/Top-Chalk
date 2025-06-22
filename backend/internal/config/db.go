@@ -46,12 +46,12 @@ func CreateTables(db *sql.DB) error {
 		name VARCHAR(100) NOT NULL
 	);`
 	createCategoriesDown := `
-	CREATE TABLE IF NOT EXISTS categoriesDown (
+	CREATE TABLE IF NOT EXISTS categoriesdown (
 		id INT AUTO_INCREMENT PRIMARY KEY,
 		name VARCHAR(100) NOT NULL
 	);`
 	createSubCategoriesDown := `
-	CREATE TABLE IF NOT EXISTS subCategoriesDown (
+	CREATE TABLE IF NOT EXISTS subcategoriesdown (
 		id INT AUTO_INCREMENT PRIMARY KEY,
 		name VARCHAR(100) NOT NULL,		
 		category_id INT NOT NULL,
@@ -59,12 +59,19 @@ func CreateTables(db *sql.DB) error {
 	);`
 	createTeachersQuery := `
 	CREATE TABLE IF NOT EXISTS teachers (
-		id INT NOT NULL,
+		id INT NOT NULL PRIMARY KEY,
 		faculty_id INT NOT NULL,
 		name VARCHAR(255) NOT NULL,
 		avatar_url VARCHAR(255),
 		FOREIGN KEY (id) REFERENCES users(id) ON DELETE CASCADE,
 		FOREIGN KEY (faculty_id) REFERENCES faculties(id) ON DELETE CASCADE
+	);`
+	createTeachersImgQuery := `
+	CREATE TABLE IF NOT EXISTS teachers_img (
+  		id INT NOT NULL,
+  		img_url VARCHAR(255) NOT NULL,
+  		PRIMARY KEY (id),
+  		FOREIGN KEY (id) REFERENCES teachers(id) ON DELETE CASCADE
 	);`
 	createVotesQuery := `
 	CREATE TABLE IF NOT EXISTS votes (
@@ -149,6 +156,13 @@ func CreateTables(db *sql.DB) error {
 		return err
 	}
 	log.Println("downvotes table exists or created.")
-
+	
+	_, err = db.Exec(createTeachersImgQuery)
+	if (err != nil) {
+		log.Printf("Failed to create images table: %v", err)
+		return err
+	}
+	log.Println("Images table exists or created.")
+	
 	return nil
 }

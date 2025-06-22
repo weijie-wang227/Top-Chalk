@@ -6,10 +6,9 @@ import {
   Typography,
   ToggleButtonGroup,
   ToggleButton,
-  Container,
   Paper,
   Stack,
-  Box
+  Box,
 } from "@mui/material";
 
 const Login = () => {
@@ -104,7 +103,12 @@ const Login = () => {
             <Typography variant="body2" align="center">
               Don't have an account?
             </Typography>
-            <Button type="submit" variant="contained" fullWidth onClick={() => navigate("/register")}>
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              onClick={() => navigate("/register")}
+            >
               Register
             </Button>
           </Stack>

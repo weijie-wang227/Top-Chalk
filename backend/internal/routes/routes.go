@@ -17,11 +17,13 @@ func NewRouter(db *sql.DB) *mux.Router {
 	r.HandleFunc("/auth/request", handlers.AuthStatusHandler(db)).Methods("GET")
 	r.HandleFunc("/logout", handlers.LogoutHandler(db)).Methods("POST")
 
-	r.HandleFunc("/categoriesUp", handlers.GetCategoriesUpHandler(db)).Methods("GET")
+	r.HandleFunc("/categories", handlers.GetCategoriesUpHandler(db)).Methods("GET")
 	r.HandleFunc("/categoriesDown", handlers.GetCategoriesDownHandler(db)).Methods("GET")
 	r.HandleFunc("/subcategories", handlers.GetSubCategoriesHandler(db)).Methods("GET")
 	r.HandleFunc("/professors", handlers.GetProfessorsHandler(db)).Methods("GET")
 	r.HandleFunc("/faculties", handlers.GetFacultiesHandler(db)).Methods("GET")
+	r.HandleFunc("/images", handlers.GetProfImageHandler(db)).Methods("GET")
+	r.HandleFunc("/info", handlers.GetProfInfoHandler(db)).Methods("GET")
 
 	r.HandleFunc("/leaderboard", handlers.GetTop3Handler(db)).Methods("GET")
 	r.HandleFunc("/top3categories", handlers.GetTop3ByCategoryHandler(db)).Methods("GET")
