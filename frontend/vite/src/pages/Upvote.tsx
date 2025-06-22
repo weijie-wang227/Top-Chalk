@@ -8,7 +8,7 @@ interface Data {
   name: string;
 }
 
-const Vote = () => {
+const Upvote = () => {
   const navigate = useNavigate();
   const [selectedProf, setProf] = useState<Data>({ id: -1, name: "null" });
   const [selectedCategory, setCategory] = useState(0);
@@ -21,7 +21,7 @@ const Vote = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch("http://localhost:8080/categories");
+        const res = await fetch("http://localhost:8080/categoriesUp");
         if (!res.ok) throw new Error("Failed to fetch categories");
         const data: Data[] = await res.json();
         setCategories(data);
@@ -113,4 +113,4 @@ const Vote = () => {
   );
 };
 
-export default Vote;
+export default Upvote;
