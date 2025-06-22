@@ -20,7 +20,7 @@ const Categories = () => {
   useEffect(() => {
     const fetchCategoriesAndTopProfs = async () => {
       try {
-        const res = await fetch("http://localhost:8080/categoriesUp");
+        const res = await fetch("http://localhost:8080/categories");
         if (!res.ok) throw new Error("Failed to fetch categories");
 
         const data: Data[] = await res.json();

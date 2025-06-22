@@ -40,29 +40,16 @@ func CreateTables(db *sql.DB) error {
     	id INT AUTO_INCREMENT PRIMARY KEY,
     	name VARCHAR(100) NOT NULL
 	);`
-	createCategoriesUp := `
-	CREATE TABLE IF NOT EXISTS categoriesUp (
+	createCategories := `
+	CREATE TABLE IF NOT EXISTS categories (
 		id INT AUTO_INCREMENT PRIMARY KEY,
 		name VARCHAR(100) NOT NULL
-	);`
-	createCategoriesDown := `
-	CREATE TABLE IF NOT EXISTS categoriesDown (
-		id INT AUTO_INCREMENT PRIMARY KEY,
-		name VARCHAR(100) NOT NULL
-	);`
-	createSubCategoriesDown := `
-	CREATE TABLE IF NOT EXISTS subCategoriesDown (
-		id INT AUTO_INCREMENT PRIMARY KEY,
-		name VARCHAR(100) NOT NULL,		
-		category_id INT NOT NULL,
-		FOREIGN KEY (category_id) REFERENCES categoriesDown(id) ON DELETE CASCADE
-	);`
+	)`
 	createTeachersQuery := `
 	CREATE TABLE IF NOT EXISTS teachers (
 		id INT NOT NULL,
 		faculty_id INT NOT NULL,
 		name VARCHAR(255) NOT NULL,
-		avatar_url VARCHAR(255),
 		FOREIGN KEY (id) REFERENCES users(id) ON DELETE CASCADE,
 		FOREIGN KEY (faculty_id) REFERENCES faculties(id) ON DELETE CASCADE
 	);`
@@ -74,18 +61,7 @@ func CreateTables(db *sql.DB) error {
 		FOREIGN KEY (id) REFERENCES users(id) ON DELETE CASCADE,
 		FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
 		UNIQUE KEY unique_vote (id, category_id)
-	);`
-	createDownVotesQuery := `
-	CREATE TABLE IF NOT EXISTS downvotes (
-		id INT NOT NULL,
-		downvote_id INT NOT NULL,
-		count INT NOT NULL,
-		FOREIGN KEY (id) REFERENCES users(id) ON DELETE CASCADE,
-		FOREIGN KEY (downvote_id)
-			REFERENCES subCategoriesDown(id)
-			ON DELETE CASCADE,
-		UNIQUE KEY unique_downVote (id, downvote_id)
-	);`
+	)`
 
 	_, err := db.Exec(createUsersQuery)
 	if err != nil {
@@ -108,12 +84,12 @@ func CreateTables(db *sql.DB) error {
 	}
 	log.Println("Faculties table exists or created.")
 
-	_, err = db.Exec(createCategoriesUp)
+	_, err = db.Exec(createCategories)
 	if err != nil {
 		log.Printf("Failed to create categories table: %v", err)
 		return err
 	}
-	log.Println("CategoriesUp table exists or created.")
+	log.Println("Categories table exists or created.")
 
 	_, err = db.Exec(createTeachersQuery)
 	if err != nil {
@@ -124,31 +100,10 @@ func CreateTables(db *sql.DB) error {
 
 	_, err = db.Exec(createVotesQuery)
 	if err != nil {
-		log.Printf("Failed to create upvotes table: %v", err)
+		log.Printf("Failed to create votes table: %v", err)
 		return err
 	}
 	log.Println("Votes table exists or created.")
-
-	_, err = db.Exec(createCategoriesDown)
-	if err != nil {
-		log.Printf("Failed to create categoriesDown table: %v", err)
-		return err
-	}
-	log.Println("categoriesDown table exists or created.")
-
-	_, err = db.Exec(createSubCategoriesDown)
-	if err != nil {
-		log.Printf("Failed to create subCategoriesDown table: %v", err)
-		return err
-	}
-	log.Println("subCategoriesDown table exists or created.")
-
-	_, err = db.Exec(createDownVotesQuery)
-	if err != nil {
-		log.Printf("Failed to create downvotes table: %v", err)
-		return err
-	}
-	log.Println("downvotes table exists or created.")
 
 	return nil
 }

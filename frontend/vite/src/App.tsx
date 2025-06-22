@@ -12,11 +12,9 @@ import { useEffect, useState } from "react";
 import Main from "./pages/Main";
 import Faculty from "./pages/Faculty";
 import Categories from "./pages/Categories";
-import Upvote from "./pages/Upvote";
-import Downvote from "./pages/Downvote";
+import Vote from "./pages/Vote";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
 //import Topbar from "./components/Topbar";
 
 export default function App() {
@@ -34,6 +32,7 @@ export default function App() {
         credentials: "include", // include session cookie
       });
       const data = await res.json();
+      console.log(data);
 
       if (!res.ok) {
         console.error("Auth error:", data.error);
@@ -83,27 +82,19 @@ export default function App() {
               <ListItemText primary="Faculties" />
             </ListItemButton>
             {mode == "student" && (
-              <>
-                <ListItemButton component={Link} to="/upvote">
-                  <ListItemText primary="Upvote" />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/downvote">
-                  <ListItemText primary="Downvote" />
-                </ListItemButton>
-              </>
-            )}
-            {mode == "teacher" && (
-              <ListItemButton component={Link} to="/dashboard">
-                <ListItemText primary="Dashboard" />
+              <ListItemButton component={Link} to="/vote">
+                <ListItemText primary="Vote" />
               </ListItemButton>
             )}
 
             {mode == "None" ? (
-              <ListItemButton component={Link} to="/login">
-                <ListItemText primary="Login" />
-              </ListItemButton>
+              <>
+                <ListItemButton component={Link} to="/login">
+                  <ListItemText primary="Login" />
+                </ListItemButton>
+              </>
             ) : (
-              <ListItemButton onClick={logout} component={Link} to="/login">
+              <ListItemButton onClick={logout}>
                 <ListItemText primary="Logout" />
               </ListItemButton>
             )}
@@ -119,20 +110,12 @@ export default function App() {
           <Route path="/" element={<Main />} />
           <Route path="/faculty" element={<Faculty />} />
           <Route path="/categories" element={<Categories />} />
-          {mode == "student" && (
-            <>
-              <Route path="/upvote" element={<Upvote />} />
-              <Route path="/downvote" element={<Downvote />} />
-            </>
-          )}
           {mode == "None" && (
             <>
+              <Route path="/vote" element={<Vote />} />
               <Route path="login" element={<Login />} />
               <Route path="register" element={<Register />} />
             </>
-          )}
-          {mode == "teacher" && (
-            <Route path="dashboard" element={<Dashboard />} />
           )}
         </Routes>
       </Box>
