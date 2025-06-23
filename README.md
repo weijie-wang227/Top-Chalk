@@ -1,19 +1,24 @@
 # Top-Chalk
 
 Dependancies:
-mysql
-go
-npm
+Go (≥ 1.20)
+MySQL (≥ 8.0)
+Node.js & npm (≥ 18)
 
 Setup Instructions
 
-1. Open a terminal
-2. cd backend
-3. change .env.sample into .env
-4. fill in details in .env to fit local database
-5. go mod tidy
-6. go run cmd/project/main.go
-7. Open another terminal
-8. cd frontend/vite
-9. npm run dev
-10. open hyperlink
+Backend setup
+
+1. cd backend
+2. cp .env.sample .env # Create environment config # Edit `.env` and fill in your MySQL DB credentials, R2 bucket details , etc.
+3. go mod tidy
+4. go run cmd/project/main.go
+
+Frontend setup
+
+1. cd frontend/vite
+2. npm install # First time only
+3. npm run dev
+
+Access the App
+Visit the URL output by Vite (usually http://localhost:5173).
