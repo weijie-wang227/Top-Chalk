@@ -17,6 +17,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import ProfessorPage from "./pages/ProfessorPage";
 import Vote from "./pages/Vote";
+import Home from "./pages/Home";
 
 export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -81,6 +82,9 @@ export default function App() {
             <ListItemButton component={Link} to="/faculty">
               <ListItemText primary="Faculties" />
             </ListItemButton>
+            <ListItemButton component={Link} to="/home">
+              <ListItemText primary="Home" />
+            </ListItemButton>
             {mode == "student" && (
               <>
                 <ListItemButton component={Link} to="/vote">
@@ -115,6 +119,7 @@ export default function App() {
           <Route path="/" element={<Main />} />
           <Route path="/faculty" element={<Faculty />} />
           <Route path="/categories" element={<Categories />} />
+          <Route path="/home" element={<Home />} />
           {mode == "student" && (
             <>
               <Route path="/vote" element={<Vote />} />

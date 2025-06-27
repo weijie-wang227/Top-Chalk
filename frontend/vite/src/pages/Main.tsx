@@ -74,17 +74,6 @@ const Main = () => {
           </div>
         </Box>
       )}
-
-      {/* Vote Button 
-      <Box sx={{ mt: 6 }}>
-        <Button
-          variant="contained"
-          size="large"
-          onClick={() => navigate("/vote")}
-        >
-          Vote to see your favourite prof up here
-        </Button>
-      </Box>*/}
     </Box>
   );
 };
