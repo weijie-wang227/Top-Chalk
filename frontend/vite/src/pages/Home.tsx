@@ -7,13 +7,14 @@ import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import HowToVoteIcon from "@mui/icons-material/HowToVote";
 
 interface Data {
-  id: number;
-  mode: string;
+  userId : number;
+  mode : string;
+  username : string;
 }
 
 const Home = () => {
   const navigate = useNavigate();
-  const [info, setInfo] = useState<Data>({ id: -1, mode: "" });
+  const [info, setInfo] = useState<Data>({ userId: -1, mode: "", username: "Loading..." });
   const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [contestStatus, setContestStatus] = useState({
     active: true,
@@ -28,9 +29,9 @@ const Home = () => {
           credentials: "include",
         });
         const data = await res.json();
+        if (!res.ok) throw new Error("Not authenticated");
         setIsAuthenticated(res.ok);
         setInfo(data);
-        if (!res.ok) throw new Error("Not authenticated");
       } catch (err) {
         console.error("Auth check failed:", err);
       }
