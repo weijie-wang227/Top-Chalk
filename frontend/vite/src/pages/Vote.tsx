@@ -82,7 +82,7 @@ const Vote = () => {
   };
 
   return (
-    <Box sx={{ p: 2 }}>
+    <Box sx={{ p: { xs: 2, sm: 4 }, minHeight: "100vh", backgroundColor: "#fff" }}>
       <TextField
         label="Search Professors"
         variant="outlined"
@@ -90,7 +90,12 @@ const Vote = () => {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onKeyDown={handleKeyDown}
-        sx={{ mb: 4 }}
+        sx={{
+          mb: 4,
+          backgroundColor: "white",
+          borderRadius: 2,
+          boxShadow: 1,
+        }}
       />
 
       {query && (
@@ -104,57 +109,113 @@ const Vote = () => {
                 justifyContent: "center",
               }}
             >
-              {filtered.map((prof) => (
-                <Box
-                  key={prof.id}
-                  sx={{
-                    width: { xs: "100%", sm: "45%", md: "30%" },
-                    flexGrow: 1,
-                  }}
-                  onClick={() => handleClick(prof)}
-                >
-                  <Card
+              {filtered.map((prof) => {
+
+                return (
+                  <Box
+                    key={prof.id}
                     sx={{
-                      cursor: "pointer",
-                      transition: "0.3s",
-                      "&:hover": { boxShadow: 6 },
-                      textAlign: "center",
-                      height: "100%",
+                      width: { xs: "100%", sm: "45%", md: "30%" },
+                      display: "flex",
+                      justifyContent: "center",
                     }}
+                    onClick={() => handleClick(prof)}
                   >
-                    <CardContent>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "center",
-                          mb: 2,
-                        }}
-                      >
-                        <img
-                          src={imageMap[prof.id] || "/placeholder.jpg"}
-                          alt="Professor"
-                          style={{
-                            width: "100%",
-                            maxWidth: "150px",
-                            height: "150px",
-                            objectFit: "cover",
-                            borderRadius: "10px",
+                    <Card
+                      sx={{
+                        width: "100%",
+                        maxWidth: 300,
+                        cursor: "pointer",
+                        transition: "0.3s ease",
+                        textAlign: "center",
+                        borderRadius: 4,
+                        backgroundColor: "#ffffff",
+                        border: "2px white",
+                        "&:hover": {
+                          boxShadow: 6,
+                          transform: "translateY(-4px)",
+                        },
+                      }}
+                    >
+                      <CardContent>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            mb: 2,
                           }}
-                        />
-                      </Box>
-                      <Typography variant="h6" gutterBottom>
-                        {prof.name}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Faculty: {prof.faculty}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Box>
-              ))}
+                        >
+                          <img
+                            src={imageMap[prof.id] || "/placeholder.jpg"}
+                            alt="Professor"
+                            style={{
+                              width: "100%",
+                              maxWidth: "120px",
+                              height: "120px",
+                              objectFit: "cover",
+                              borderRadius: "50%",
+                            }}
+                          />
+                        </Box>
+                        <Typography
+                          variant="h6"
+                          sx={{ color: "#111111", fontWeight: "bold" }}
+                        >
+                          {prof.name}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{ color: "#333333", mb: 2 }}
+                        >
+                          Faculty: {prof.faculty}
+                        </Typography>
+
+                        <Box sx={{ textAlign: "center" }}>
+                          <Box
+                            sx={{
+                              background: "#1976d2",
+                              color: "white",
+                              borderRadius: 2,
+                              fontWeight: "bold",
+                              py: 1,
+                              px: 7,
+                              display: "inline-block",
+                              fontSize: "0.9rem",
+                              cursor: "pointer",
+                              transition: "0.3s",
+                              "&:hover": {
+                                background: "white",
+                                color: "#1976d2",
+                                border: "1px solid #065f46",
+                              },
+                            }}
+                          >
+                            Vote
+                          </Box>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Box>
+                );
+              })}
             </Box>
           ) : (
-            <Typography mt={2}>No results found</Typography>
+            <Typography
+              mt={4}
+              sx={{
+                textAlign: "center",
+                color: "#6b7280",
+                fontSize: "1.2rem",
+                backgroundColor: "#ffffff",
+                p: 3,
+                borderRadius: 2,
+                boxShadow: 1,
+                maxWidth: 400,
+                mx: "auto",
+              }}
+            >
+              No results found. Try a different name or faculty.
+            </Typography>
           )}
         </Box>
       )}

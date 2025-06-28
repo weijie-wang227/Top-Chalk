@@ -103,7 +103,7 @@ const Register = () => {
                       value="student"
                       sx={{
                         flex: 1,
-                        border: "1px solid black",
+                        border: "1px solid white",
                         "&.Mui-selected": {
                           border: "2px solid #10B981",
                         },
@@ -116,7 +116,7 @@ const Register = () => {
                       value="teacher"
                       sx={{
                         flex: 1,
-                        border: "1px solid black",
+                        border: "1px solid white",
                         "&.Mui-selected": {
                           border: "2px solid #10B981",
                         },
