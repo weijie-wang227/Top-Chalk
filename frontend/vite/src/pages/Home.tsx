@@ -109,7 +109,7 @@ const Home = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            Welcome {isAuthenticated && info.userId}{" "}
+            Welcome {isAuthenticated && info.username}{" "}
           </h1>
           <h2 className="text-3xl font-bold text-gray-700 mb-4">
             Rate Your Professors, Win the Week!
