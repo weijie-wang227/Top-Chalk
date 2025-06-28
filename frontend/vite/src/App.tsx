@@ -72,6 +72,9 @@ export default function App() {
         <Box width={240} role="presentation" onClick={toggleDrawer(false)}>
           <List>
             <ListItemButton component={Link} to="/">
+              <ListItemText primary="Home" />
+            </ListItemButton>
+            <ListItemButton component={Link} to="/">
               <ListItemText primary="Leaderboards" />
             </ListItemButton>
             <ListItemButton component={Link} to="/">
@@ -126,6 +129,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/leaderboards" element={<Leaderboards />} />
+
           {mode == "student" && (
             <>
               <Route path="/vote" element={<Vote />} />

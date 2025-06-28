@@ -14,6 +14,7 @@ import {
   Typography,
   Card,
   Divider,
+  CardMedia,
 } from "@mui/material";
 
 interface Data {
@@ -37,6 +38,7 @@ const ProfessorPage = () => {
   const [selectedSubCategory, setSubCategory] = useState(0);
   const [allDownCategories, setDownCategories] = useState<Data[]>([]);
   const [allSubCategories, setSubCategories] = useState<Data[]>([]);
+  const [image, setImage] = useState("");
 
   const onSelectCategory = (id: number) => setCategory(id);
   const onSelectDownCategory = (id: number) => setDownCategory(id);
@@ -47,7 +49,7 @@ const ProfessorPage = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch("http://localhost:8080/categories");
+        const res = await fetch("http://localhost:8080/categoriesUp");
         if (!res.ok) throw new Error("Failed to fetch categories");
         const data: Data[] = await res.json();
         setCategories(data);
@@ -78,9 +80,30 @@ const ProfessorPage = () => {
       }
     };
 
+    const fetchImage = async () => {
+      try {
+        const res = await fetch(`http://localhost:8080/avatarUrl?id=${id}`, {
+          method: "GET",
+          credentials: "include",
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          console.error("Image error:", data.error);
+          setImage("/placeholder.jpg");
+          throw new Error("Cannot fetch avatar Url");
+        }
+        setImage(data.url);
+      } catch (err) {
+        console.error(`Failed to load image for ${professor.name}`, err);
+        setImage("/placeholder.jpg");
+      }
+    };
+
     fetchCategories();
     fetchCategoriesDown();
     fetchInfo();
+    fetchImage();
   }, [id]);
 
   useEffect(() => {
@@ -141,17 +164,35 @@ const ProfessorPage = () => {
 
   return (
     <Container maxWidth="md" sx={{ py: 6 }}>
-      <Card sx={{ p: 4, mb: 4 }}>
-        <Typography variant="h4" fontWeight="bold" textAlign="center">
-          {professor.name}
-        </Typography>
-        <Typography
-          variant="subtitle1"
-          textAlign="center"
-          color="text.secondary"
-        >
-          Faculty: {professor.faculty}
-        </Typography>
+      <Card
+        sx={{
+          p: 4,
+          mb: 4,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 4,
+        }}
+      >
+        <CardMedia
+          component="img"
+          image={image}
+          alt={professor.name}
+          sx={{
+            width: 130,
+            height: 130,
+            borderRadius: "50%",
+            objectFit: "cover",
+          }}
+        />
+        <Box>
+          <Typography variant="h4" fontWeight="bold">
+            {professor.name}
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Faculty: {professor.faculty}
+          </Typography>
+        </Box>
       </Card>
 
       {/* Upvote Section */}

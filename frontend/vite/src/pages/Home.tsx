@@ -7,13 +7,18 @@ import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import HowToVoteIcon from "@mui/icons-material/HowToVote";
 
 interface Data {
-  id: number;
+  userId: number;
   mode: string;
+  username: string;
 }
 
 const Home = () => {
   const navigate = useNavigate();
-  const [info, setInfo] = useState<Data>({ id: -1, mode: "" });
+  const [info, setInfo] = useState<Data>({
+    userId: -1,
+    mode: "",
+    username: "Loading...",
+  });
   const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [contestStatus, setContestStatus] = useState({
     active: true,
@@ -28,9 +33,9 @@ const Home = () => {
           credentials: "include",
         });
         const data = await res.json();
+        if (!res.ok) throw new Error("Not authenticated");
         setIsAuthenticated(res.ok);
         setInfo(data);
-        if (!res.ok) throw new Error("Not authenticated");
       } catch (err) {
         console.error("Auth check failed:", err);
       }
@@ -104,7 +109,7 @@ const Home = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            Welcome {isAuthenticated && info.id}{" "}
+            Welcome {isAuthenticated && info.userId}{" "}
           </h1>
           <h2 className="text-3xl font-bold text-gray-700 mb-4">
             Rate Your Professors, Win the Week!
