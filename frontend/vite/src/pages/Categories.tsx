@@ -63,16 +63,32 @@ const Categories = () => {
   };
 
   return (
-    <Box>
-      {categories.map((category) => {
-        const items = topProfs[category.id];
-        if (!items || items.length === 0) return null; // Skip if not ready or empty
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-bold text-gray-900 mb-4">
+            Category Rankings
+          </h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            See which professors are leading in specific categories like
+            helpfulness, humor, and inspiration.
+          </p>
+        </div>
 
-        return (
-          <Section key={category.id} title={category.name} items={items} />
-        );
-      })}
-    </Box>
+        <div className="flex flex-col items-center gap-8">
+          {categories.map((category) => {
+            const items = topProfs[category.id];
+            if (!items || items.length === 0) return null;
+
+            return (
+              <div key={category.id} className="w-full max-w-3xl">
+                <Section title={category.name} items={items} />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 };
 
