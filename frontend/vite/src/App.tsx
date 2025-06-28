@@ -73,6 +73,9 @@ export default function App() {
       <Drawer open={drawerOpen} onClose={toggleDrawer(false)}>
         <Box width={240} role="presentation" onClick={toggleDrawer(false)}>
           <List>
+            <ListItemButton component={Link} to="/home">
+              <ListItemText primary="Home" />
+            </ListItemButton>
             <ListItemButton component={Link} to="/">
               <ListItemText primary="Main" />
             </ListItemButton>
@@ -82,9 +85,6 @@ export default function App() {
             <ListItemButton component={Link} to="/faculty">
               <ListItemText primary="Faculties" />
             </ListItemButton>
-             <ListItemButton component={Link} to="/home">
-                  <ListItemText primary="Home" />
-                </ListItemButton>
             {mode == "student" && (
               <>
                 <ListItemButton component={Link} to="/vote">
@@ -116,10 +116,10 @@ export default function App() {
         </IconButton>
 
         <Routes>
+          <Route path="/home" element={<Home />} />
           <Route path="/" element={<Main />} />
           <Route path="/faculty" element={<Faculty />} />
           <Route path="/categories" element={<Categories />} />
-          <Route path="/home" element={<Home />} />
           {mode == "student" && (
             <>
               <Route path="/vote" element={<Vote />} />
