@@ -7,6 +7,7 @@ import {
   CardContent,
   Typography,
   InputAdornment,
+  Paper,
 } from "@mui/material";
 import { Search } from "lucide-react";
 
@@ -91,6 +92,11 @@ const Vote = () => {
 
   return (
     <Box sx={{ p: 2 }}>
+      <Paper elevation={3} sx={{ mb: 3, p: 2, textAlign: "center" }}>
+        <Typography variant="h4" fontWeight="bold">
+          Choose your Professor
+        </Typography>
+      </Paper>
       <TextField
         label="Search Professors"
         variant="outlined"
