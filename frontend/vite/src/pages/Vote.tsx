@@ -1,6 +1,14 @@
-import { Box, TextField, Typography, Card, CardContent } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  Box,
+  TextField,
+  Card,
+  CardContent,
+  Typography,
+  InputAdornment,
+} from "@mui/material";
+import { Search } from "lucide-react";
 
 interface Data {
   id: number;
@@ -91,6 +99,13 @@ const Vote = () => {
         onChange={(e) => setQuery(e.target.value)}
         onKeyDown={handleKeyDown}
         sx={{ mb: 4 }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <Search size={20} />
+            </InputAdornment>
+          ),
+        }}
       />
 
       {query && (
@@ -154,7 +169,9 @@ const Vote = () => {
               ))}
             </Box>
           ) : (
-            <Typography mt={2}>No results found</Typography>
+            <Typography variant="body1" sx={{ textAlign: "center", mt: 4 }}>
+              No results found
+            </Typography>
           )}
         </Box>
       )}

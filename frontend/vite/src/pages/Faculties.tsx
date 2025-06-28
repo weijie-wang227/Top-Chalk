@@ -1,4 +1,4 @@
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import Section from "../components/Section";
 import { useState } from "react";
 import { useEffect } from "react";
@@ -12,7 +12,7 @@ interface Teacher extends Data {
   votes: number;
 }
 
-const Faculty = () => {
+const Faculties = () => {
   const [faculties, setFaculties] = useState<Data[]>([]);
   // Map category id to array of teachers
   const [topProfs, setTopProfs] = useState<Record<number, Teacher[]>>({});
@@ -30,6 +30,7 @@ const Faculty = () => {
         const profMapEntries = await Promise.all(
           data.map(async (category) => {
             const profs = await fetchTop3Professors(category.id);
+
             return [category.id, profs] as [number, Teacher[]];
           })
         );
@@ -61,17 +62,33 @@ const Faculty = () => {
   };
 
   return (
-    <Box>
-      {faculties.map((category) => {
-        const items = topProfs[category.id];
-        if (!items || items.length === 0) return null; // Skip if not ready or empty
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-bold text-gray-900 mb-4">
+            Faculty Rankings
+          </h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Explore the top 3 professors in each faculty, ranked by votes from
+            students like you.
+          </p>
+        </div>
 
-        return (
-          <Section key={category.id} title={category.name} items={items} />
-        );
-      })}
-    </Box>
+        <div className="flex flex-col items-center gap-8">
+          {faculties.map((faculty) => {
+            const items = topProfs[faculty.id];
+            if (!items || items.length === 0) return null;
+
+            return (
+              <div key={faculty.id} className="w-full max-w-3xl">
+                <Section title={faculty.name} items={items} />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 };
 
-export default Faculty;
+export default Faculties;

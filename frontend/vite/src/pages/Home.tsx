@@ -1,26 +1,24 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  Typography,
-  Card,
-  Box,
-  Paper
-} from '@mui/material';
-import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
-import GroupIcon from '@mui/icons-material/Group';
-import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
-import HowToVoteIcon from '@mui/icons-material/HowToVote';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Typography, Card, Box, Paper } from "@mui/material";
+import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
+import GroupIcon from "@mui/icons-material/Group";
+import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
+import HowToVoteIcon from "@mui/icons-material/HowToVote";
 
 interface Data {
-  id : number;
-  mode : string;
+  id: number;
+  mode: string;
 }
 
 const Home = () => {
   const navigate = useNavigate();
   const [info, setInfo] = useState<Data>({ id: -1, mode: "" });
   const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const [contestStatus, setContestStatus] = useState({ active: true, timeLeft: '' });
+  const [contestStatus, setContestStatus] = useState({
+    active: true,
+    timeLeft: "",
+  });
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -40,7 +38,7 @@ const Home = () => {
 
     const getTimeUntilCutoff = () => {
       const now = new Date();
-      const day = now.getDay(); 
+      const day = now.getDay();
       const hours = now.getHours();
 
       let target = new Date(now);
@@ -78,7 +76,7 @@ const Home = () => {
     };
 
     updateTime();
-    const interval = setInterval(updateTime, 1000); 
+    const interval = setInterval(updateTime, 1000);
 
     return () => clearInterval(interval);
   }, []);
@@ -86,38 +84,43 @@ const Home = () => {
   const features = [
     {
       icon: <EmojiEventsIcon fontSize="large" color="warning" />,
-      title: 'Grand Leaderboard',
-      description: 'See top professors across all faculties'
+      title: "Grand Leaderboard",
+      description: "See top professors across all faculties",
     },
     {
       icon: <GroupIcon fontSize="large" color="primary" />,
-      title: 'Faculty Competition',
-      description: 'Interfaculty battles based on participation'
+      title: "Faculty Competition",
+      description: "Interfaculty battles based on participation",
     },
     {
       icon: <EmojiEmotionsIcon fontSize="large" color="secondary" />,
-      title: 'Category Rankings',
-      description: 'Helpful, Funny, Inspiring, and more'
-    }
+      title: "Category Rankings",
+      description: "Helpful, Funny, Inspiring, and more",
+    },
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">Welcome {isAuthenticated && info.id} </h1>
+          <h1 className="text-5xl font-bold text-gray-900 mb-4">
+            Welcome {isAuthenticated && info.id}{" "}
+          </h1>
           <h2 className="text-3xl font-bold text-gray-700 mb-4">
             Rate Your Professors, Win the Week!
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            TopChalk brings gamification to professor feedback. Vote for your favorite educators,
-            compete in weekly contests, and help build a better academic community.
+            TopChalk brings gamification to professor feedback. Vote for your
+            favorite educators, compete in weekly contests, and help build a
+            better academic community.
           </p>
         </div>
 
         {contestStatus.active ? (
-          <Paper elevation={3} className="mb-12 bg-gradient-to-r from-orange-50 to-yellow-50 p-4">
+          <Paper
+            elevation={3}
+            className="mb-12 bg-gradient-to-r from-orange-50 to-yellow-50 p-4"
+          >
             <div className="text-center mb-2">
               <div className="flex justify-center items-center space-x-2 text-orange-800">
                 <HowToVoteIcon />
@@ -129,31 +132,46 @@ const Home = () => {
             </div>
             <div className="text-center">
               <div className="bg-white rounded-lg p-4 inline-block">
-                <Typography variant="h4" className="text-orange-600 mb-1 font-bold">
+                <Typography
+                  variant="h4"
+                  className="text-orange-600 mb-1 font-bold"
+                >
                   {contestStatus.timeLeft}
                 </Typography>
-                <Typography variant="body2" className="text-gray-600">Time Remaining</Typography>
+                <Typography variant="body2" className="text-gray-600">
+                  Time Remaining
+                </Typography>
               </div>
             </div>
           </Paper>
         ) : (
-          <Paper elevation={3} className="mb-12 bg-gradient-to-r from-orange-50 to-yellow-50 p-4">
+          <Paper
+            elevation={3}
+            className="mb-12 bg-gradient-to-r from-orange-50 to-yellow-50 p-4"
+          >
             <div className="text-center mb-2">
               <div className="flex justify-center items-center space-x-2 text-orange-800">
                 <HowToVoteIcon />
                 <span className="font-large">Contest not active</span>
               </div>
             </div>
-            </Paper>
+          </Paper>
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           {features.map((feature, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow duration-300 text-center p-4">
+            <Card
+              key={index}
+              className="hover:shadow-lg transition-shadow duration-300 text-center p-4"
+            >
               <Box className="flex flex-col items-center">
                 <div className="mb-2">{feature.icon}</div>
-                <Typography variant="h6" className="mb-1">{feature.title}</Typography>
-                <Typography variant="body2" className="text-gray-600">{feature.description}</Typography>
+                <Typography variant="h6" className="mb-1">
+                  {feature.title}
+                </Typography>
+                <Typography variant="body2" className="text-gray-600">
+                  {feature.description}
+                </Typography>
               </Box>
             </Card>
           ))}
@@ -162,7 +180,7 @@ const Home = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card
             className="cursor-pointer hover:shadow-lg transition-shadow duration-300 p-4"
-            onClick={() => navigate('/faculties')}
+            onClick={() => navigate("/leaderboards")}
           >
             <Box className="flex items-center space-x-2 mb-1">
               <EmojiEventsIcon color="warning" />
@@ -175,7 +193,7 @@ const Home = () => {
 
           <Card
             className="cursor-pointer hover:shadow-lg transition-shadow duration-300 p-4"
-            onClick={() => navigate('/vote')}
+            onClick={() => navigate("/vote")}
           >
             <Box className="flex items-center space-x-2 mb-1">
               <HowToVoteIcon color="primary" />

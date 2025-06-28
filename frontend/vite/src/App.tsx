@@ -9,9 +9,7 @@ import {
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useEffect, useState } from "react";
-import Main from "./pages/Main";
-import Faculty from "./pages/Faculty";
-import Categories from "./pages/Categories";
+import Leaderboards from "./pages/Leaderboards";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -74,15 +72,9 @@ export default function App() {
         <Box width={240} role="presentation" onClick={toggleDrawer(false)}>
           <List>
             <ListItemButton component={Link} to="/">
-              <ListItemText primary="Main" />
+              <ListItemText primary="Leaderboards" />
             </ListItemButton>
-            <ListItemButton component={Link} to="/categories">
-              <ListItemText primary="Categories" />
-            </ListItemButton>
-            <ListItemButton component={Link} to="/faculty">
-              <ListItemText primary="Faculties" />
-            </ListItemButton>
-            <ListItemButton component={Link} to="/home">
+            <ListItemButton component={Link} to="/">
               <ListItemText primary="Home" />
             </ListItemButton>
             {mode == "student" && (
@@ -111,15 +103,29 @@ export default function App() {
         </Box>
       </Drawer>
       <Box component="main" flexGrow={1} sx={{ height: "100vh" }}>
-        <IconButton onClick={toggleDrawer(true)} sx={{ m: 2 }}>
-          <MenuIcon />
-        </IconButton>
+        {!drawerOpen && (
+          <IconButton
+            onClick={toggleDrawer(true)}
+            sx={{
+              position: "fixed",
+              top: 16,
+              left: 16,
+              zIndex: 1300, // higher than drawer
+              backgroundColor: "white",
+              borderRadius: 1,
+              boxShadow: 2,
+              "&:hover": {
+                backgroundColor: "#f0f0f0",
+              },
+            }}
+          >
+            <MenuIcon />
+          </IconButton>
+        )}
 
         <Routes>
-          <Route path="/" element={<Main />} />
-          <Route path="/faculty" element={<Faculty />} />
-          <Route path="/categories" element={<Categories />} />
-          <Route path="/home" element={<Home />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/leaderboards" element={<Leaderboards />} />
           {mode == "student" && (
             <>
               <Route path="/vote" element={<Vote />} />
