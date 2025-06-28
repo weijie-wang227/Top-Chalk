@@ -16,30 +16,6 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `categories`
---
-
-DROP TABLE IF EXISTS `categoriesUp`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `categories` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `categories`
---
-
-LOCK TABLES `categoriesUp` WRITE;
-/*!40000 ALTER TABLE `categories` DISABLE KEYS */;
-INSERT INTO `categories` VALUES (1,'Funniest'),(2,'Most Approachable'),(3,'Most Iconic');
-/*!40000 ALTER TABLE `categories` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `categoriesdown`
 --
 
@@ -61,6 +37,30 @@ LOCK TABLES `categoriesdown` WRITE;
 /*!40000 ALTER TABLE `categoriesdown` DISABLE KEYS */;
 INSERT INTO `categoriesdown` VALUES (1,'Pace'),(2,'Delivery'),(3,'Content'),(4,'Engagement');
 /*!40000 ALTER TABLE `categoriesdown` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `categoriesup`
+--
+
+DROP TABLE IF EXISTS `categoriesUp`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `categoriesUp` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `categoriesup`
+--
+
+LOCK TABLES `categoriesUp` WRITE;
+/*!40000 ALTER TABLE `categoriesup` DISABLE KEYS */;
+INSERT INTO `categoriesUp` VALUES (1,'Funniest'),(2,'Most Approachable'),(3,'Most Iconic');
+/*!40000 ALTER TABLE `categoriesup` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -87,7 +87,7 @@ CREATE TABLE `downvotes` (
 
 LOCK TABLES `downvotes` WRITE;
 /*!40000 ALTER TABLE `downvotes` DISABLE KEYS */;
-INSERT INTO `downvotes` VALUES (10,1,2);
+INSERT INTO `downvotes` VALUES (10,1,2),(10,5,2),(10,6,1),(10,9,1);
 /*!40000 ALTER TABLE `downvotes` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -139,7 +139,7 @@ CREATE TABLE `sessions` (
 
 LOCK TABLES `sessions` WRITE;
 /*!40000 ALTER TABLE `sessions` DISABLE KEYS */;
-INSERT INTO `sessions` VALUES ('4950a719-97d6-4497-9838-ec37224f2a9e',1,'student','2025-06-15 15:16:36'),('d047de1e-c695-48a5-bcaa-a4c5d1ebfac2',1,'student','2025-06-16 21:39:11');
+INSERT INTO `sessions` VALUES ('1ddf1cd7-edb9-494d-972b-0c48ecd7102d',1,'student','2025-06-22 15:32:04'),('4950a719-97d6-4497-9838-ec37224f2a9e',1,'student','2025-06-15 15:16:36'),('929f5556-231a-4619-9f68-5178d578d6b7',10,'teacher','2025-06-20 00:06:12'),('d047de1e-c695-48a5-bcaa-a4c5d1ebfac2',1,'student','2025-06-16 21:39:11');
 /*!40000 ALTER TABLE `sessions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -181,7 +181,8 @@ CREATE TABLE `teachers` (
   `id` int NOT NULL,
   `faculty_id` int NOT NULL,
   `name` varchar(255) NOT NULL,
-  PRIMARY KEY `id` (`id`),
+  `avatar_url` varchar(255) DEFAULT NULL,
+  KEY `id` (`id`),
   KEY `faculty_id` (`faculty_id`),
   CONSTRAINT `teachers_ibfk_1` FOREIGN KEY (`id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `teachers_ibfk_2` FOREIGN KEY (`faculty_id`) REFERENCES `faculties` (`id`) ON DELETE CASCADE
@@ -194,7 +195,7 @@ CREATE TABLE `teachers` (
 
 LOCK TABLES `teachers` WRITE;
 /*!40000 ALTER TABLE `teachers` DISABLE KEYS */;
-INSERT INTO `teachers` VALUES (2,1,'Jaundice'),(3,1,'Yam'),(4,1,'Perk'),(5,2,'Zwee'),(6,2,'June'),(7,2,'Tai'),(8,3,'Grah'),(9,3,'Shooby'),(10,3,'Shazam');
+INSERT INTO `teachers` VALUES (2,1,'Jaundice','https://pub-760701a0839c4a9ebce469a6b5cbd2c6.r2.dev/avatars/2-63901d32-082d-4fe7-a7db-ec972023245b.jpeg'),(3,1,'Yam',NULL),(4,1,'Perk',NULL),(5,2,'Zwee',NULL),(6,2,'June',NULL),(7,2,'Tai',NULL),(8,3,'Grah',NULL),(9,3,'Shooby',NULL),(10,3,'Shazam','https://pub-760701a0839c4a9ebce469a6b5cbd2c6.r2.dev/avatars/10-4726dd86-0b47-464c-8c46-c643bcaa5368.jpeg');
 /*!40000 ALTER TABLE `teachers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -239,7 +240,7 @@ CREATE TABLE `votes` (
   UNIQUE KEY `unique_vote` (`id`,`category_id`),
   KEY `category_id` (`category_id`),
   CONSTRAINT `votes_ibfk_1` FOREIGN KEY (`id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `votes_ibfk_2` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE
+  CONSTRAINT `votes_ibfk_2` FOREIGN KEY (`category_id`) REFERENCES `categoriesup` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -253,33 +254,6 @@ INSERT INTO `votes` VALUES (2,3,1),(4,2,3),(9,1,1),(10,1,2),(10,2,1),(10,3,1);
 /*!40000 ALTER TABLE `votes` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
-
--- --------------------------------------------------------
--- Table structure for table `teachers_img`
--- --------------------------------------------------------
-
-DROP TABLE IF EXISTS `teachers_img`;
-
-CREATE TABLE IF NOT EXISTS `teachers_img` (
-  id INT NOT NULL,
-  img_url VARCHAR(255) NOT NULL,
-  PRIMARY KEY (id),
-  FOREIGN KEY (id) REFERENCES teachers(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
--- Dumping data for table `teachers_img`
--- --------------------------------------------------------
-
-LOCK TABLES `teachers_img` WRITE;
-
-INSERT INTO `teachers_img` (id, img_url) VALUES
-  (2, 'https://cdn4.iconfinder.com/data/icons/avatars-xmas-giveaway/128/batman_hero_avatar_comics-512.png'),
-  (3, 'https://marketplace.canva.com/EAFewoMXU-4/1/0/1600w/canva-purple-pink-gradient-man-3d-avatar-0o0qE2T_kr8.jpg'),
-  (4, 'https://img.freepik.com/premium-vector/male-face-avatar-icon-set-flat-design-social-media-profiles_1281173-3806.jpg?semt=ais_hybrid&w=740');
-
-UNLOCK TABLES;
-
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
@@ -288,4 +262,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-06-15 23:31:21
+-- Dump completed on 2025-06-21 15:40:44
