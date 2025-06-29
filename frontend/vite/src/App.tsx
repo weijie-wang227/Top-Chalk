@@ -16,8 +16,10 @@ import Dashboard from "./pages/Dashboard";
 import ProfessorPage from "./pages/ProfessorPage";
 import Vote from "./pages/Vote";
 import Home from "./pages/Home";
+import { useLocation } from "react-router-dom";
 
 export default function App() {
+  const location = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [mode, setMode] = useState("None");
 
@@ -44,6 +46,10 @@ export default function App() {
     }
   };
 
+  useEffect(() => {
+    checkAuth();
+  }, [location]);
+
   const logout = async () => {
     try {
       const res = await fetch("http://localhost:8080/logout", {
@@ -61,17 +67,12 @@ export default function App() {
     }
   };
 
-  useEffect(() => {
-    checkAuth();
-    console.log("update");
-  }, [drawerOpen]);
-
   return (
     <Box display="flex" height="100vh">
       <Drawer open={drawerOpen} onClose={toggleDrawer(false)}>
         <Box width={240} role="presentation" onClick={toggleDrawer(false)}>
           <List>
-            <ListItemButton component={Link} to="/home">
+            <ListItemButton component={Link} to="/">
               <ListItemText primary="Home" />
             </ListItemButton>
             <ListItemButton component={Link} to="/leaderboards">
