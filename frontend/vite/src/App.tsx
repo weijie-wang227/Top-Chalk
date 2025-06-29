@@ -71,10 +71,10 @@ export default function App() {
       <Drawer open={drawerOpen} onClose={toggleDrawer(false)}>
         <Box width={240} role="presentation" onClick={toggleDrawer(false)}>
           <List>
-            <ListItemButton component={Link} to="/">
+            <ListItemButton component={Link} to="/home">
               <ListItemText primary="Home" />
             </ListItemButton>
-            <ListItemButton component={Link} to="/">
+            <ListItemButton component={Link} to="/leaderboards">
               <ListItemText primary="Leaderboards" />
             </ListItemButton>
             {mode == "student" && (
