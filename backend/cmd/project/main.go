@@ -3,6 +3,7 @@ package main
 import (
 	"backend/internal/config"
 	"backend/internal/routes"
+	"backend/internal/tasks"
 	"log"
 	"net/http"
 
@@ -15,6 +16,7 @@ func main() {
 	config.CreateTables(db)
 	defer db.Close()
 	router := routes.NewRouter(db)
+	go tasks.WeeklyLoop(db)
 
 	corsHandler := handlers.CORS(
 		handlers.AllowedOrigins([]string{"http://localhost:5173"}),

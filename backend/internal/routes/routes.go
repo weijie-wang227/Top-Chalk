@@ -35,5 +35,7 @@ func NewRouter(db *sql.DB) *mux.Router {
 	r.HandleFunc("/upload", handlers.UploadAvatarHandler(db)).Methods("POST")
 	r.HandleFunc("/avatarUrl", handlers.GetAvatarUrl(db)).Methods("GET")
 
+	r.HandleFunc("/checkVote", handlers.CheckVotes(db)).Methods("GET")
+
 	return r
 }

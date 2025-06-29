@@ -21,6 +21,8 @@ const Vote = () => {
   const [query, setQuery] = useState("");
   const [imageMap, setImageMap] = useState<Record<number, string>>({});
   const [profs, setProfessors] = useState<Data[]>([]);
+  const [Allfaculties, setAllFaculties] = useState<Data[]>([]);
+  const [faculties, setFaculties] = useState<Data[]>([]);
   const navigate = useNavigate();
 
   const handleClick = (prof: Data) => {
@@ -34,7 +36,17 @@ const Vote = () => {
         if (!res.ok) throw new Error("Failed to fetch professors");
         const data: Data[] = await res.json();
         setProfessors(data);
-        console.log(data);
+      } catch (err) {
+        console.error("Error:", err);
+      }
+    };
+
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch("http://localhost:8080/faculties");
+        if (!res.ok) throw new Error("Failed to fetch faculties");
+        const data: Data[] = await res.json();
+        setFaculties(data);
       } catch (err) {
         console.error("Error:", err);
       }

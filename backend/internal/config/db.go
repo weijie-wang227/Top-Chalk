@@ -87,6 +87,18 @@ func CreateTables(db *sql.DB) error {
 		UNIQUE KEY unique_downVote (id, downvote_id)
 	);`
 
+	createWeeklyQuery := `
+	CREATE TABLE IF NOT EXISTS weeklyTracker (
+    student_id INT NOT NULL,
+    teacher_id INT NOT NULL,
+    isUpvote BOOLEAN NOT NULL, 
+    
+    UNIQUE (student_id, teacher_id, isUpvote),
+
+    FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
+); `
+
 	_, err := db.Exec(createUsersQuery)
 	if err != nil {
 		log.Printf("Failed to create users table: %v", err)
@@ -149,6 +161,13 @@ func CreateTables(db *sql.DB) error {
 		return err
 	}
 	log.Println("downvotes table exists or created.")
+
+	_, err = db.Exec(createWeeklyQuery)
+	if err != nil {
+		log.Printf("Failed to create weeklyTracker table: %v", err)
+		return err
+	}
+	log.Println("weeklyTracker table exists or created.")
 
 	return nil
 }

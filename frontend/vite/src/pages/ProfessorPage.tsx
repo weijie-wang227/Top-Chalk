@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import {
@@ -39,12 +39,13 @@ const ProfessorPage = () => {
   const [allDownCategories, setDownCategories] = useState<Data[]>([]);
   const [allSubCategories, setSubCategories] = useState<Data[]>([]);
   const [image, setImage] = useState("");
+  const [studentId, setStudentId] = useState(-1);
+  const [cannotUpvote, setUpvote] = useState(false);
+  const [cannotDownvote, setDownvote] = useState(false);
 
   const onSelectCategory = (id: number) => setCategory(id);
   const onSelectDownCategory = (id: number) => setDownCategory(id);
   const onSelectSubCategory = (id: number) => setSubCategory(id);
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -82,6 +83,7 @@ const ProfessorPage = () => {
 
     const fetchImage = async () => {
       try {
+        console.log(id);
         const res = await fetch(`http://localhost:8080/avatarUrl?id=${id}`, {
           method: "GET",
           credentials: "include",
@@ -105,6 +107,56 @@ const ProfessorPage = () => {
     fetchInfo();
     fetchImage();
   }, [id]);
+
+  useEffect(() => {
+    if (studentId != -1) {
+      const fetchCanVote = async () => {
+        try {
+          const res = await fetch(
+            `http://localhost:8080/checkVote?studentId=${studentId}&teacherId=${id}`,
+            {
+              method: "GET",
+              credentials: "include",
+            }
+          );
+          const data = await res.json();
+
+          if (!res.ok) {
+            console.error("Check votes:", data.error);
+            throw new Error("Cannot check votes");
+          }
+          setUpvote(data.upvote);
+          setDownvote(data.downvote);
+        } catch (err) {
+          console.error(`Failed to load image for ${professor.name}`, err);
+          setImage("/placeholder.jpg");
+        }
+      };
+
+      fetchCanVote();
+    }
+  }, [studentId]);
+
+  useEffect(() => {
+    const fetchStudentId = async () => {
+      try {
+        const res = await fetch("http://localhost:8080/auth/request", {
+          method: "GET",
+          credentials: "include", // include session cookie
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          console.error("Auth error:", data.error);
+          throw new Error("Not authenticated");
+        }
+        setStudentId(data.userId);
+      } catch (err) {
+        console.error(`Failed to get userId`, err);
+      }
+    };
+    fetchStudentId();
+  }, []);
 
   useEffect(() => {
     const fetchSubCat = async () => {
@@ -131,13 +183,13 @@ const ProfessorPage = () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ profId, selectedCategory }),
+      body: JSON.stringify({ profId, studentId, selectedCategory }),
     });
 
     if (response.ok) {
       const data = await response.json();
       console.log(data.message);
-      navigate("/");
+      setUpvote(true);
     } else {
       console.log("Vote failed");
     }
@@ -150,13 +202,13 @@ const ProfessorPage = () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ profId, selectedSubCategory }),
+      body: JSON.stringify({ profId, studentId, selectedSubCategory }),
     });
 
     if (response.ok) {
       const data = await response.json();
       console.log(data.message);
-      navigate("/");
+      setDownvote(true);
     } else {
       console.log("Vote failed");
     }
@@ -223,11 +275,14 @@ const ProfessorPage = () => {
           <Button
             variant="contained"
             size="large"
-            disabled={selectedCategory === 0}
+            disabled={selectedCategory === 0 || cannotUpvote}
             onClick={handleUpVote}
           >
             Submit Upvote
           </Button>
+          {cannotUpvote && (
+            <Typography color="text.secondary">Already Upvoted</Typography>
+          )}
         </Box>
       </Card>
 
@@ -276,11 +331,14 @@ const ProfessorPage = () => {
           <Button
             variant="contained"
             size="large"
-            disabled={selectedSubCategory === 0}
+            disabled={selectedSubCategory === 0 || cannotDownvote}
             onClick={handleDownVote}
           >
             Submit Downvote
           </Button>
+          {cannotDownvote && (
+            <Typography color="text.secondary">Already Downvoted</Typography>
+          )}
         </Box>
       </Card>
     </Container>
