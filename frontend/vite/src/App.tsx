@@ -77,9 +77,6 @@ export default function App() {
             <ListItemButton component={Link} to="/">
               <ListItemText primary="Leaderboards" />
             </ListItemButton>
-            <ListItemButton component={Link} to="/">
-              <ListItemText primary="Home" />
-            </ListItemButton>
             {mode == "student" && (
               <>
                 <ListItemButton component={Link} to="/vote">

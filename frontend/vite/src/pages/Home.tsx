@@ -5,6 +5,7 @@ import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import GroupIcon from "@mui/icons-material/Group";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import HowToVoteIcon from "@mui/icons-material/HowToVote";
+import AccountBoxIcon from "@mui/icons-material/AccountBox";
 
 interface Data {
   userId: number;
@@ -109,7 +110,7 @@ const Home = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            Welcome {isAuthenticated && info.userId}{" "}
+            Welcome {isAuthenticated && info.username}{" "}
           </h1>
           <h2 className="text-3xl font-bold text-gray-700 mb-4">
             Rate Your Professors, Win the Week!
@@ -196,18 +197,35 @@ const Home = () => {
             </Typography>
           </Card>
 
-          <Card
-            className="cursor-pointer hover:shadow-lg transition-shadow duration-300 p-4"
-            onClick={() => navigate("/vote")}
-          >
-            <Box className="flex items-center space-x-2 mb-1">
-              <HowToVoteIcon color="primary" />
-              <Typography variant="subtitle1">Cast Your Vote</Typography>
-            </Box>
-            <Typography variant="body2" className="text-gray-600">
-              Vote for your favorite professors in different categories
-            </Typography>
-          </Card>
+          {info.mode == "student" ? (
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-shadow duration-300 p-4"
+              onClick={() => navigate("/vote")}
+            >
+              <Box className="flex items-center space-x-2 mb-1">
+                <HowToVoteIcon color="primary" />
+                <Typography variant="subtitle1">Cast Your Vote</Typography>
+              </Box>
+              <Typography variant="body2" className="text-gray-600">
+                Vote for your favorite professors in different categories
+              </Typography>
+            </Card>
+          ) : (
+            info.mode == "teacher" && (
+              <Card
+                className="cursor-pointer hover:shadow-lg transition-shadow duration-300 p-4"
+                onClick={() => navigate("/dashboard")}
+              >
+                <Box className="flex items-center space-x-2 mb-1">
+                  <AccountBoxIcon color="primary" />
+                  <Typography variant="subtitle1">Go to Dashboard</Typography>
+                </Box>
+                <Typography variant="body2" className="text-gray-600">
+                  Find out about feedback from your students
+                </Typography>
+              </Card>
+            )
+          )}
         </div>
       </div>
     </div>

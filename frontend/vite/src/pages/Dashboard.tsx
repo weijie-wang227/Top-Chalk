@@ -13,7 +13,6 @@ import {
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import { useState } from "react";
-import logo from "../assets/TopChalk.png";
 import { useEffect } from "react";
 
 interface WorstData {
@@ -192,14 +191,17 @@ const Dashboard = () => {
   };
 
   return (
-    <Box sx={{ p: 4, textAlign: "center", width: "90vw" }}>
-      {/* TopChalk Intro */}
-      <Box sx={{ mb: 5 }}>
-        <img
-          src={logo}
-          alt="TopChalk Logo"
-          style={{ height: 200, marginBottom: 16 }}
-        />
+    <Box
+      sx={{
+        p: { xs: 2, md: 4 },
+        textAlign: "center",
+        width: "100%",
+        maxWidth: 960,
+        mx: "auto",
+      }}
+    >
+      {/* Logo and Avatar */}
+      <Box sx={{ mb: 6 }}>
         <Box
           sx={{
             position: "relative",
@@ -212,11 +214,18 @@ const Dashboard = () => {
             <Avatar
               src={imageUrl}
               alt="Profile"
-              sx={{ width: "100%", height: "100%" }}
-            />
+              sx={{
+                width: "100%",
+                height: "100%",
+                border: "2px solid #ccc",
+                bgcolor: imageUrl ? "transparent" : "grey.300",
+                fontSize: "2rem",
+              }}
+            >
+              {!imageUrl && name?.charAt(0)}
+            </Avatar>
           </MuiTooltip>
 
-          {/* Edit icon button */}
           <MuiTooltip title="Edit Avatar">
             <IconButton
               size="small"
@@ -236,17 +245,18 @@ const Dashboard = () => {
             </IconButton>
           </MuiTooltip>
         </Box>
-        <Typography variant="h3" gutterBottom>
+
+        <Typography variant="h3" gutterBottom sx={{ mt: 2 }}>
           Welcome {name}!
         </Typography>
       </Box>
 
-      {/* Leaderboard */}
+      {/* Top Traits */}
       <Typography variant="h4" gutterBottom>
         Your Best Traits
       </Typography>
 
-      <Box className="bar-container">
+      <Box className="bar-container" sx={{ mt: 3, mb: 6 }}>
         {best.length > 2 && (
           <div className="bar third">
             3
@@ -256,7 +266,6 @@ const Dashboard = () => {
         )}
         {best.length > 0 && (
           <div className="bar first">
-            {" "}
             1
             <br />
             {best[0]}
@@ -264,7 +273,6 @@ const Dashboard = () => {
         )}
         {best.length > 2 && (
           <div className="bar second">
-            {" "}
             2
             <br />
             {best[1]}
@@ -272,9 +280,10 @@ const Dashboard = () => {
         )}
       </Box>
 
+      {/* Complaints Pie Chart */}
       {pieData && (
         <>
-          <Typography variant="h3" gutterBottom sx={{ marginTop: 10 }}>
+          <Typography variant="h4" gutterBottom sx={{ mt: 8, mb: 4 }}>
             These are some complaints your students have...
           </Typography>
           <ResponsiveContainer width="100%" height={300}>
