@@ -94,7 +94,7 @@ const Vote = () => {
 
   const filtered = profs.filter((prof) =>
     prof.name.toLowerCase().includes(query.toLowerCase())
-  ).filter((prof) => );
+  );
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter" && filtered.length > 0) {

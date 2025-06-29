@@ -114,17 +114,17 @@ func AuthStatusHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("session_id")
 		type AuthResponse struct {
-			UserID int    `json:"userId"`
-			Mode   string `json:"mode"`
+			UserID   int    `json:"userId"`
+			Mode     string `json:"mode"`
 			Username string `json:"username"`
 		}
 
 		if err != nil {
 			log.Printf("No session currently")
 			json.NewEncoder(w).Encode(AuthResponse{
-				UserID: -1,
-				Mode:   "None",
-				Username : "",
+				UserID:   -1,
+				Mode:     "None",
+				Username: "",
 			})
 			return
 		}
@@ -179,8 +179,8 @@ func AuthStatusHandler(db *sql.DB) http.HandlerFunc {
 
 			}
 			json.NewEncoder(w).Encode(json.NewEncoder(w).Encode(AuthResponse{
-				UserID: -2,
-				Mode:   "None",
+				UserID:   -2,
+				Mode:     "None",
 				Username: "",
 			}))
 			return
@@ -194,8 +194,8 @@ func AuthStatusHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		json.NewEncoder(w).Encode(AuthResponse{
-			UserID: userId,
-			Mode:   mode,
+			UserID:   userId,
+			Mode:     mode,
 			Username: username,
 		})
 	}
@@ -244,6 +244,7 @@ func LogoutHandler(db *sql.DB) http.HandlerFunc {
 
 type UpvoteRequest struct {
 	ProfId     int `json:"profId"`
+	StudentId  int `json:"studentId"`
 	CategoryId int `json:"selectedCategory"`
 }
 
@@ -265,6 +266,16 @@ func UpvoteHandler(db *sql.DB) http.HandlerFunc {
 		_, err := db.Exec(query, upvote.ProfId, upvote.CategoryId)
 		if err != nil {
 			log.Printf("Failed to insert or update vote: %v", err)
+			return
+		}
+
+		query2 := `
+		INSERT INTO weeklyTracker (student_id, teacher_id, isUpvote)
+		VALUES (?, ?, true)`
+
+		_, err2 := db.Exec(query2, upvote.StudentId, upvote.ProfId)
+		if err2 != nil {
+			log.Printf("Failed to insert or update tracker: %v", err)
 			return
 		}
 
@@ -304,6 +315,7 @@ func GetProfInfoHandler(db *sql.DB) http.HandlerFunc {
 
 type DownvoteRequest struct {
 	ProfId     int `json:"profId"`
+	StudentId  int `json:"studentId"`
 	DownvoteId int `json:"selectedSubCategory"`
 }
 
@@ -324,6 +336,16 @@ func DownvoteHandler(db *sql.DB) http.HandlerFunc {
 		_, err := db.Exec(query, downvote.ProfId, downvote.DownvoteId)
 		if err != nil {
 			log.Printf("Failed to insert or update vote: %v", err)
+			return
+		}
+
+		query2 := `
+		INSERT INTO weeklyTracker (student_id, teacher_id, isUpvote)
+		VALUES (?, ?, false)`
+
+		_, err2 := db.Exec(query2, downvote.StudentId, downvote.ProfId)
+		if err2 != nil {
+			log.Printf("Failed to insert or update tracker: %v", err)
 			return
 		}
 
@@ -927,4 +949,71 @@ func GetAvatarUrl(db *sql.DB) http.HandlerFunc {
 		}
 
 	}
+}
+
+type AlreadyVoted struct {
+	HasUpvoted   bool `json:"upvote"`
+	HasDownvoted bool `json:"downvote"`
+}
+
+func CheckVotes(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		student_id, ok := r.URL.Query()["studentId"]
+		if !ok || len(student_id) < 1 {
+			http.Error(w, "student_id parameter is missing", http.StatusBadRequest)
+			log.Printf("student_id missing")
+			return
+		}
+
+		studentID, err := strconv.Atoi(student_id[0])
+		if err != nil {
+			http.Error(w, "Invalid student_id", http.StatusBadRequest)
+			log.Printf("student_id invalid")
+			return
+		}
+
+		teacher_id, ok := r.URL.Query()["teacherId"]
+		if !ok || len(teacher_id) < 1 {
+			http.Error(w, "teacher_id parameter is missing", http.StatusBadRequest)
+			log.Printf("teacher_id missing")
+			return
+		}
+		teacherID, err := strconv.Atoi(teacher_id[0])
+		if err != nil {
+			http.Error(w, "Invalid teacher_id", http.StatusBadRequest)
+			log.Printf("teacher_id invalid")
+			return
+		}
+
+		var hasVoted AlreadyVoted
+		err2 := db.QueryRow(`
+			SELECT EXISTS (
+				SELECT 1 FROM weeklyTracker WHERE student_id = ? AND teacher_id = ? AND isUpvote = true
+			)
+		`, studentID, teacherID).Scan(&hasVoted.HasUpvoted)
+		if err2 != nil {
+			http.Error(w, "Failed to check upvote", http.StatusBadRequest)
+			log.Printf(err2.Error())
+			return
+		}
+
+		err3 := db.QueryRow(`
+			SELECT EXISTS (
+				SELECT 1 FROM weeklyTracker WHERE student_id = ? AND teacher_id = ? AND isUpvote = false
+			)
+		`, studentID, teacherID).Scan(&hasVoted.HasDownvoted)
+		if err3 != nil {
+			http.Error(w, "failed to check downvote", http.StatusBadRequest)
+			log.Printf(err3.Error())
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+		if err4 := json.NewEncoder(w).Encode(hasVoted); err4 != nil {
+			http.Error(w, "JSON encode failed", http.StatusInternalServerError)
+			return
+		}
+	}
+
 }
