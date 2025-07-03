@@ -185,9 +185,11 @@ const ProfessorPage = () => {
       credentials: "include",
       body: JSON.stringify({ profId, studentId, selectedCategory }),
     });
+    console.log(response);
 
     if (response.ok) {
       const data = await response.json();
+      console.log(data);
       console.log(data.message);
       setUpvote(true);
     } else {
@@ -204,6 +206,8 @@ const ProfessorPage = () => {
       credentials: "include",
       body: JSON.stringify({ profId, studentId, selectedSubCategory }),
     });
+
+    console.log(response);
 
     if (response.ok) {
       const data = await response.json();

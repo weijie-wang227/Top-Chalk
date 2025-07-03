@@ -43,7 +43,7 @@ func UploadAvatarHandler(db *sql.DB) http.HandlerFunc {
 
 		// Delete previous avatar
 		var oldUrl string
-		_ = db.QueryRow("SELECT avatar_url FROM teachers WHERE id = ?", teacherId).Scan(&oldUrl)
+		_ = db.QueryRow("SELECT avatar_url FROM teachers WHERE id = $1", teacherId).Scan(&oldUrl)
 		if oldUrl != "" {
 			oldKey := strings.TrimPrefix(oldUrl, "https://pub-760701a0839c4a9ebce469a6b5cbd2c6.r2.dev/")
 			if oldKey != "" && oldKey != key {
@@ -72,7 +72,7 @@ func UploadAvatarHandler(db *sql.DB) http.HandlerFunc {
 
 		url := fmt.Sprintf("https://pub-760701a0839c4a9ebce469a6b5cbd2c6.r2.dev/%s", key)
 
-		_, err = db.Exec("UPDATE teachers SET avatar_url = ? WHERE id = ?", url, teacherId)
+		_, err = db.Exec("UPDATE teachers SET avatar_url = $1 WHERE id = $2", url, teacherId)
 		if err != nil {
 			http.Error(w, "Failed to save avatar URL", http.StatusInternalServerError)
 			return
