@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type LoginRequest struct {
@@ -25,32 +27,39 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
+		// Uniqueness check
 		var existing int
-		err := db.QueryRow("SELECT COUNT(*) FROM users WHERE username = $1", req.Username).Scan(&existing)
-		if err != nil {
+		if err := db.QueryRow(`SELECT COUNT(*) FROM users WHERE username = $1`, req.Username).
+			Scan(&existing); err != nil {
 			http.Error(w, "Database error", http.StatusInternalServerError)
-			log.Printf(err.Error())
+			log.Print(err)
 			return
 		}
-
 		if existing > 0 {
 			http.Error(w, "User already exists", http.StatusConflict)
-			log.Printf(err.Error())
 			return
 		}
 
-		_, err = db.Exec("INSERT INTO users (username, password, mode) VALUES ($1, $2, $3)",
-			req.Username, req.Password, req.Mode)
+		// ▶ hash the password
+		hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+		if err != nil {
+			http.Error(w, "Password hashing failed", http.StatusInternalServerError)
+			return
+		}
+
+		// Store hash (NOT the raw password)
+		_, err = db.Exec(
+			`INSERT INTO users (username, password, mode) VALUES ($1, $2, $3)`,
+			req.Username, string(hash), req.Mode,
+		)
 		if err != nil {
 			http.Error(w, "Failed to register user", http.StatusInternalServerError)
-			log.Printf(err.Error())
+			log.Print(err)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
-			"message": "Registration successful",
-		})
+		json.NewEncoder(w).Encode(map[string]string{"message": "Registration successful"})
 	}
 }
 
@@ -62,35 +71,55 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		var userId int
-		var password string
-
+		var (
+			userID        int
+			storedPassRaw string
+		)
 		err := db.QueryRow(
-			"SELECT id, password FROM users WHERE username = $1 AND mode = $2",
-			creds.Username, creds.Mode,
-		).Scan(&userId, &password)
+			`SELECT id, password FROM users WHERE username = $1 AND mode = $2`,
+			creds.Username, creds.Mode).
+			Scan(&userID, &storedPassRaw)
 
-		if err == sql.ErrNoRows || password != creds.Password {
+		if err == sql.ErrNoRows {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
-		} else if err != nil {
+		}
+		if err != nil {
 			http.Error(w, "Server error", http.StatusInternalServerError)
 			return
 		}
 
-		// Generate session token
+		// Decide if the stored value is already bcrypt (starts with "$2")
+		// If bcrypt compare fails we fall back to legacy plain‑text check.
+		valid := false
+		if len(storedPassRaw) >= 60 && storedPassRaw[0:2] == "$2" {
+			// bcrypt hash path
+			if bcrypt.CompareHashAndPassword([]byte(storedPassRaw), []byte(creds.Password)) == nil {
+				valid = true
+			}
+		} else if storedPassRaw == creds.Password {
+			// legacy plain‑text match — immediately upgrade to bcrypt
+			if hash, err := bcrypt.GenerateFromPassword([]byte(creds.Password), bcrypt.DefaultCost); err == nil {
+				_, _ = db.Exec(`UPDATE users SET password = $1 WHERE id = $2`, string(hash), userID)
+			}
+			valid = true
+		}
+
+		if !valid {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		// ── create a session as before ──
 		sessionToken := uuid.NewString()
 		expiry := time.Now().Add(24 * time.Hour)
-		_, err = db.Exec(
-			"INSERT INTO sessions (session_id, user_id, mode, expires_at) VALUES ($1, $2, $3, $4)",
-			sessionToken, userId, creds.Mode, expiry,
-		)
-		if err != nil {
+		if _, err = db.Exec(
+			`INSERT INTO sessions (session_id, user_id, mode, expires_at) VALUES ($1,$2,$3,$4)`,
+			sessionToken, userID, creds.Mode, expiry); err != nil {
 			http.Error(w, "Could not create session", http.StatusInternalServerError)
 			return
 		}
-		log.Printf("New Session: %v", sessionToken)
-		// Set session cookie
+
 		http.SetCookie(w, &http.Cookie{
 			Name:     "session_id",
 			Value:    sessionToken,
@@ -98,8 +127,8 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 			HttpOnly: true,
 			SameSite: http.SameSiteLaxMode,
 			Expires:  expiry,
+			// Secure: true,  // enable in production (HTTPS)
 		})
-
 		http.SetCookie(w, &http.Cookie{
 			Name:     "current_user",
 			Value:    creds.Username,
