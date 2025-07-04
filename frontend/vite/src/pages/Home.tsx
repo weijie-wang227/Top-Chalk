@@ -25,6 +25,7 @@ const Home = () => {
     active: true,
     timeLeft: "",
   });
+  const [canVote, setVote] = useState({});
 
   useEffect(() => {
     const checkAuth = async () => {

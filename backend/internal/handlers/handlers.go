@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type LoginRequest struct {
@@ -25,29 +27,39 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
+		// Uniqueness check
 		var existing int
-		err := db.QueryRow("SELECT COUNT(*) FROM users WHERE username = ?", req.Username).Scan(&existing)
-		if err != nil {
+		if err := db.QueryRow(`SELECT COUNT(*) FROM users WHERE username = $1`, req.Username).
+			Scan(&existing); err != nil {
 			http.Error(w, "Database error", http.StatusInternalServerError)
+			log.Print(err)
 			return
 		}
-
 		if existing > 0 {
 			http.Error(w, "User already exists", http.StatusConflict)
 			return
 		}
 
-		_, err = db.Exec("INSERT INTO users (username, password, mode) VALUES (?, ?, ?)",
-			req.Username, req.Password, req.Mode)
+		// ▶ hash the password
+		hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+		if err != nil {
+			http.Error(w, "Password hashing failed", http.StatusInternalServerError)
+			return
+		}
+
+		// Store hash (NOT the raw password)
+		_, err = db.Exec(
+			`INSERT INTO users (username, password, mode) VALUES ($1, $2, $3)`,
+			req.Username, string(hash), req.Mode,
+		)
 		if err != nil {
 			http.Error(w, "Failed to register user", http.StatusInternalServerError)
+			log.Print(err)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
-			"message": "Registration successful",
-		})
+		json.NewEncoder(w).Encode(map[string]string{"message": "Registration successful"})
 	}
 }
 
@@ -59,35 +71,55 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		var userId int
-		var password string
-
+		var (
+			userID        int
+			storedPassRaw string
+		)
 		err := db.QueryRow(
-			"SELECT id, password FROM users WHERE username = ? AND mode = ?",
-			creds.Username, creds.Mode,
-		).Scan(&userId, &password)
+			`SELECT id, password FROM users WHERE username = $1 AND mode = $2`,
+			creds.Username, creds.Mode).
+			Scan(&userID, &storedPassRaw)
 
-		if err == sql.ErrNoRows || password != creds.Password {
+		if err == sql.ErrNoRows {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
-		} else if err != nil {
+		}
+		if err != nil {
 			http.Error(w, "Server error", http.StatusInternalServerError)
 			return
 		}
 
-		// Generate session token
+		// Decide if the stored value is already bcrypt (starts with "$2")
+		// If bcrypt compare fails we fall back to legacy plain‑text check.
+		valid := false
+		if len(storedPassRaw) >= 60 && storedPassRaw[0:2] == "$2" {
+			// bcrypt hash path
+			if bcrypt.CompareHashAndPassword([]byte(storedPassRaw), []byte(creds.Password)) == nil {
+				valid = true
+			}
+		} else if storedPassRaw == creds.Password {
+			// legacy plain‑text match — immediately upgrade to bcrypt
+			if hash, err := bcrypt.GenerateFromPassword([]byte(creds.Password), bcrypt.DefaultCost); err == nil {
+				_, _ = db.Exec(`UPDATE users SET password = $1 WHERE id = $2`, string(hash), userID)
+			}
+			valid = true
+		}
+
+		if !valid {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		// ── create a session as before ──
 		sessionToken := uuid.NewString()
 		expiry := time.Now().Add(24 * time.Hour)
-		_, err = db.Exec(
-			"INSERT INTO sessions (session_id, user_id, mode, expires_at) VALUES (?, ?, ?, ?)",
-			sessionToken, userId, creds.Mode, expiry,
-		)
-		if err != nil {
+		if _, err = db.Exec(
+			`INSERT INTO sessions (session_id, user_id, mode, expires_at) VALUES ($1,$2,$3,$4)`,
+			sessionToken, userID, creds.Mode, expiry); err != nil {
 			http.Error(w, "Could not create session", http.StatusInternalServerError)
 			return
 		}
-		log.Printf("New Session: %v", sessionToken)
-		// Set session cookie
+
 		http.SetCookie(w, &http.Cookie{
 			Name:     "session_id",
 			Value:    sessionToken,
@@ -95,8 +127,8 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 			HttpOnly: true,
 			SameSite: http.SameSiteLaxMode,
 			Expires:  expiry,
+			// Secure: true,  // enable in production (HTTPS)
 		})
-
 		http.SetCookie(w, &http.Cookie{
 			Name:     "current_user",
 			Value:    creds.Username,
@@ -135,7 +167,7 @@ func AuthStatusHandler(db *sql.DB) http.HandlerFunc {
 		var username string
 
 		err = db.QueryRow(
-			"SELECT s.user_id, s.mode, s.expires_at, u.username FROM sessions s JOIN users u ON s.user_id = u.id WHERE session_id = ?",
+			"SELECT s.user_id, s.mode, s.expires_at, u.username FROM sessions s JOIN users u ON s.user_id = u.id WHERE session_id = $1",
 			cookie.Value,
 		).Scan(&userId, &mode, &expiry, &username)
 
@@ -149,7 +181,7 @@ func AuthStatusHandler(db *sql.DB) http.HandlerFunc {
 				return
 			} else if time.Now().After(expiry) {
 
-				_, err = db.Exec("DELETE FROM sessions WHERE expires_at = ?", expiry)
+				_, err = db.Exec("DELETE FROM sessions WHERE expires_at = $1", expiry)
 				if err != nil {
 					w.Header().Set("Content-Type", "application/json")
 					w.WriteHeader(http.StatusInternalServerError)
@@ -211,7 +243,7 @@ func LogoutHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		// Delete the session from the database
-		_, err = db.Exec("DELETE FROM sessions WHERE session_id = ?", cookie.Value)
+		_, err = db.Exec("DELETE FROM sessions WHERE session_id = $1", cookie.Value)
 		if err != nil {
 			http.Error(w, "Failed to logout", http.StatusInternalServerError)
 			return
@@ -259,8 +291,9 @@ func UpvoteHandler(db *sql.DB) http.HandlerFunc {
 
 		query := `
 		INSERT INTO votes (id, category_id, count)
-		VALUES (?, ?, 1)
-		ON DUPLICATE KEY UPDATE count = count + 1;
+		VALUES ($1, $2, 1)
+		ON CONFLICT (id, category_id) DO UPDATE
+		SET count = votes.count + 1;
 		`
 
 		_, err := db.Exec(query, upvote.ProfId, upvote.CategoryId)
@@ -271,7 +304,7 @@ func UpvoteHandler(db *sql.DB) http.HandlerFunc {
 
 		query2 := `
 		INSERT INTO weeklyTracker (student_id, teacher_id, isUpvote)
-		VALUES (?, ?, true)`
+		VALUES ($1, $2, true)`
 
 		_, err2 := db.Exec(query2, upvote.StudentId, upvote.ProfId)
 		if err2 != nil {
@@ -296,7 +329,7 @@ func GetProfInfoHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		var info ProfInfo
-		query := `SELECT teachers.id, teachers.name, faculties.name FROM teachers JOIN faculties ON faculties.id = teachers.faculty_id  WHERE teachers.id = ?`
+		query := `SELECT teachers.id, teachers.name, faculties.name FROM teachers JOIN faculties ON faculties.id = teachers.faculty_id  WHERE teachers.id = $1`
 		err = db.QueryRow(query, profId).Scan(&info.ProfId, &info.ProfName, &info.Faculty)
 		if err == sql.ErrNoRows {
 			http.Error(w, "Professor not found", http.StatusNotFound)
@@ -330,8 +363,9 @@ func DownvoteHandler(db *sql.DB) http.HandlerFunc {
 
 		query := `
 		INSERT INTO downvotes (id, downvote_id, count)
-		VALUES(?, ?, 1)
-		ON DUPLICATE KEY UPDATE count = count + 1;
+		VALUES ($1, $2, 1)
+		ON CONFLICT (id, downvote_id) DO UPDATE
+		SET count = downvotes.count + 1;
 		`
 		_, err := db.Exec(query, downvote.ProfId, downvote.DownvoteId)
 		if err != nil {
@@ -341,7 +375,7 @@ func DownvoteHandler(db *sql.DB) http.HandlerFunc {
 
 		query2 := `
 		INSERT INTO weeklyTracker (student_id, teacher_id, isUpvote)
-		VALUES (?, ?, false)`
+		VALUES ($1, $2, false)`
 
 		_, err2 := db.Exec(query2, downvote.StudentId, downvote.ProfId)
 		if err2 != nil {
@@ -452,7 +486,7 @@ func GetSubCategoriesHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		const q = `SELECT id, name FROM subcategoriesdown WHERE category_id = ?`
+		const q = `SELECT id, name FROM subcategoriesdown WHERE category_id = $1`
 
 		rows, err := db.Query(q, categoryID)
 		if err != nil {
@@ -638,7 +672,7 @@ func GetTop3ByCategoryHandler(db *sql.DB) http.HandlerFunc {
 			JOIN 
 				teachers t ON v.id = t.id
 			WHERE 
-				v.category_id = ?
+				v.category_id = $1
 			GROUP BY 
 				t.id, t.name
 			ORDER BY 
@@ -697,7 +731,7 @@ func GetTop3ByFacultyHandler(db *sql.DB) http.HandlerFunc {
       LEFT JOIN
         votes v ON t.id = v.id
       WHERE
-        t.faculty_id = ?
+        t.faculty_id = $1
       GROUP BY
         t.id, t.name
       ORDER BY
@@ -762,7 +796,7 @@ func GetBestCategories(db *sql.DB) http.HandlerFunc {
 		SELECT c.name 
 		FROM votes v 
 		JOIN categoriesUp c ON v.category_id = c.id 
-		WHERE v.id = ? 
+		WHERE v.id = $1
 		GROUP BY c.name 
 		ORDER BY SUM(v.count) DESC 
 		LIMIT 3;
@@ -839,7 +873,7 @@ func GetWorstCategories(db *sql.DB) http.HandlerFunc {
 				FROM subcategoriesdown sd2
 				JOIN downvotes d2 ON sd2.id = d2.downvote_id
 				WHERE sd2.category_id = cd.id
-				AND d2.id = ?
+				AND d2.id = $1
 				GROUP BY sd2.id, sd2.name
 				ORDER BY COUNT(*) DESC
 				LIMIT 1
@@ -847,7 +881,7 @@ func GetWorstCategories(db *sql.DB) http.HandlerFunc {
 			FROM categoriesdown cd
 			JOIN subcategoriesdown sd ON cd.id = sd.category_id
 			JOIN downvotes d ON sd.id = d.downvote_id
-			WHERE d.id = ?
+			WHERE d.id = $2
 			GROUP BY cd.id, cd.name;`
 
 		rows, err := db.Query(query, id, id)
@@ -891,7 +925,7 @@ func GetNameHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		const query = `SELECT name FROM teachers WHERE id = ?`
+		const query = `SELECT name FROM teachers WHERE id = $1`
 
 		var name string
 		err = db.QueryRow(query, id).Scan(&name)
@@ -928,7 +962,7 @@ func GetAvatarUrl(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		const query = `SELECT avatar_url FROM teachers WHERE id = ?`
+		const query = `SELECT avatar_url FROM teachers WHERE id = $1`
 
 		var url string
 		err = db.QueryRow(query, id).Scan(&url)
@@ -988,7 +1022,7 @@ func CheckVotes(db *sql.DB) http.HandlerFunc {
 		var hasVoted AlreadyVoted
 		err2 := db.QueryRow(`
 			SELECT EXISTS (
-				SELECT 1 FROM weeklyTracker WHERE student_id = ? AND teacher_id = ? AND isUpvote = true
+				SELECT 1 FROM weeklyTracker WHERE student_id = $1 AND teacher_id = $2 AND isUpvote = true
 			)
 		`, studentID, teacherID).Scan(&hasVoted.HasUpvoted)
 		if err2 != nil {
@@ -999,7 +1033,7 @@ func CheckVotes(db *sql.DB) http.HandlerFunc {
 
 		err3 := db.QueryRow(`
 			SELECT EXISTS (
-				SELECT 1 FROM weeklyTracker WHERE student_id = ? AND teacher_id = ? AND isUpvote = false
+				SELECT 1 FROM weeklyTracker WHERE student_id = $1 AND teacher_id = $2 AND isUpvote = false
 			)
 		`, studentID, teacherID).Scan(&hasVoted.HasDownvoted)
 		if err3 != nil {

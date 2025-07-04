@@ -11,7 +11,6 @@ import (
 )
 
 func main() {
-
 	db := config.ConnectDB()
 	config.CreateTables(db)
 	defer db.Close()
