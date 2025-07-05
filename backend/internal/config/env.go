@@ -3,10 +3,8 @@ package config
 import (
 	"log"
 	"os"
-
-	"fmt"
-
 	"github.com/joho/godotenv"
+	"fmt"
 )
 
 func getDSN() string {
@@ -23,8 +21,8 @@ func getDSN() string {
 
 	// URL-encode password if needed
 	// If it's already encoded (like %21 for !), remove url.QueryEscape
-	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		dbUser, dbPass, dbHost, dbPort, dbName)
+	 dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+        dbUser, dbPass, dbHost, dbPort, dbName)
 
 	fmt.Println("Connecting with DSN:", dsn)
 	return dsn
