@@ -1,17 +1,14 @@
 package config
 
 import (
-	"log"
 	"os"
 	"github.com/joho/godotenv"
 	"fmt"
 )
 
 func getDSN() string {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+
+	_ = godotenv.Load()
 
 	dbUser := os.Getenv("DB_USER")
 	dbPass := os.Getenv("DB_PASS")

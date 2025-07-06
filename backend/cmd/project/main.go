@@ -5,8 +5,8 @@ import (
 	"backend/internal/routes"
 	"backend/internal/tasks"
 	"log"
-	"net/http"
-
+	"net/http" 
+	"os"
 	"github.com/gorilla/handlers"
 )
 
@@ -24,6 +24,11 @@ func main() {
 		handlers.AllowCredentials(),
 	)(router)
 
-	log.Println("Server is running on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", corsHandler))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // default for local dev
+	}
+
+	log.Printf("Server is running on http://0.0.0.0:%s", port)
+	log.Fatal(http.ListenAndServe("0.0.0.0:"+port, corsHandler))
 }
