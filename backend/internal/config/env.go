@@ -1,26 +1,19 @@
 package config
 
 import (
-	"os"
-	"github.com/joho/godotenv"
 	"fmt"
+	"os"
 )
 
 func getDSN() string {
-
-	_ = godotenv.Load()
-
 	dbUser := os.Getenv("DB_USER")
 	dbPass := os.Getenv("DB_PASS")
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
 	dbName := os.Getenv("DB_NAME")
+	instanceConnName := os.Getenv("DB_HOST") // this should be the Cloud SQL instance connection name
 
-	// URL-encode password if needed
-	// If it's already encoded (like %21 for !), remove url.QueryEscape
-	 dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
-        dbUser, dbPass, dbHost, dbPort, dbName)
+	dsn := fmt.Sprintf("user=%s password=%s dbname=%s host=/cloudsql/%s sslmode=disable",
+		dbUser, dbPass, dbName, instanceConnName)
 
-	fmt.Println("Connecting with DSN:", dsn)
+	fmt.Printf("Connecting to DB %s as %s using Unix socket...\n", dbName, dbUser)
 	return dsn
 }
