@@ -15,7 +15,7 @@ const Main = () => {
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const res = await fetch("http://localhost:8080/leaderboard");
+        const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/leaderboard");
         if (!res.ok) throw new Error("Failed to fetch leaderboard");
         const leaderboardData: Teacher[] = await res.json();
         setData(leaderboardData);

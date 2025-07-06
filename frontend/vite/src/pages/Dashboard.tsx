@@ -31,7 +31,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchId = async () => {
       try {
-        const res = await fetch("http://localhost:8080/auth/request", {
+        const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/auth/request", {
           method: "GET",
           credentials: "include",
         });
@@ -58,7 +58,7 @@ const Dashboard = () => {
     const fetchBest = async () => {
       try {
         const res = await fetch(
-          `http://localhost:8080/bestCategories?id=${teacherId}`,
+          `https://top-chalk-659279002644.asia-southeast1.run.app/bestCategories?id=${teacherId}`,
           {
             method: "GET",
             credentials: "include", // include session cookie
@@ -78,7 +78,7 @@ const Dashboard = () => {
     const fetchWorst = async () => {
       try {
         const res = await fetch(
-          `http://localhost:8080/worstCategories?id=${teacherId}`
+          `https://top-chalk-659279002644.asia-southeast1.run.app/worstCategories?id=${teacherId}`
         );
         const data = await res.json();
         if (!res.ok) {
@@ -93,7 +93,7 @@ const Dashboard = () => {
     const fetchName = async () => {
       try {
         const res = await fetch(
-          `http://localhost:8080/getName?id=${teacherId}`,
+          `https://top-chalk-659279002644.asia-southeast1.run.app/getName?id=${teacherId}`,
           {
             method: "GET",
             credentials: "include",
@@ -114,7 +114,7 @@ const Dashboard = () => {
     const fetchUrl = async () => {
       try {
         const res = await fetch(
-          `http://localhost:8080/avatarUrl?id=${teacherId}`,
+          `https://top-chalk-659279002644.asia-southeast1.run.app/avatarUrl?id=${teacherId}`,
           {
             method: "GET",
             credentials: "include",
@@ -152,7 +152,7 @@ const Dashboard = () => {
       formData.append("teacherId", teacherId.toString());
       formData.append("image", file); // assume file is from <input type="file" />
 
-      const res = await fetch("http://localhost:8080/upload", {
+      const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/upload", {
         method: "POST",
         credentials: "include",
         body: formData, // browser will set correct headers automatically

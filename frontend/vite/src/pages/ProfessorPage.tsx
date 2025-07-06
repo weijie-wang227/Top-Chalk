@@ -50,7 +50,7 @@ const ProfessorPage = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch("http://localhost:8080/categoriesUp");
+        const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/categoriesUp");
         if (!res.ok) throw new Error("Failed to fetch categories");
         const data: Data[] = await res.json();
         setCategories(data);
@@ -61,7 +61,7 @@ const ProfessorPage = () => {
 
     const fetchCategoriesDown = async () => {
       try {
-        const res = await fetch("http://localhost:8080/categoriesDown");
+        const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/categoriesDown");
         if (!res.ok) throw new Error("Failed to fetch categories");
         const data: Data[] = await res.json();
         setDownCategories(data);
@@ -72,7 +72,7 @@ const ProfessorPage = () => {
 
     const fetchInfo = async () => {
       try {
-        const res = await fetch(`http://localhost:8080/info?profId=${id}`);
+        const res = await fetch(`https://top-chalk-659279002644.asia-southeast1.run.app/info?profId=${id}`);
         if (!res.ok) throw new Error("Unable to fetch info");
         const info: Data = await res.json();
         setProfessor(info);
@@ -84,7 +84,7 @@ const ProfessorPage = () => {
     const fetchImage = async () => {
       try {
         console.log(id);
-        const res = await fetch(`http://localhost:8080/avatarUrl?id=${id}`, {
+        const res = await fetch(`https://top-chalk-659279002644.asia-southeast1.run.app/avatarUrl?id=${id}`, {
           method: "GET",
           credentials: "include",
         });
@@ -113,7 +113,7 @@ const ProfessorPage = () => {
       const fetchCanVote = async () => {
         try {
           const res = await fetch(
-            `http://localhost:8080/checkVote?studentId=${studentId}&teacherId=${id}`,
+            `https://top-chalk-659279002644.asia-southeast1.run.app/checkVote?studentId=${studentId}&teacherId=${id}`,
             {
               method: "GET",
               credentials: "include",
@@ -140,7 +140,7 @@ const ProfessorPage = () => {
   useEffect(() => {
     const fetchStudentId = async () => {
       try {
-        const res = await fetch("http://localhost:8080/auth/request", {
+        const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/auth/request", {
           method: "GET",
           credentials: "include", // include session cookie
         });
@@ -162,7 +162,7 @@ const ProfessorPage = () => {
     const fetchSubCat = async () => {
       try {
         const res = await fetch(
-          `http://localhost:8080/subcategories?category_id=${encodeURIComponent(
+          `https://top-chalk-659279002644.asia-southeast1.run.app/subcategories?category_id=${encodeURIComponent(
             selectedDownCategory
           )}`
         );
@@ -179,7 +179,7 @@ const ProfessorPage = () => {
   const handleUpVote = async (e: React.FormEvent) => {
     e.preventDefault();
     const profId = professor.id;
-    const response = await fetch("http://localhost:8080/upvote", {
+    const response = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/upvote", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -200,7 +200,7 @@ const ProfessorPage = () => {
   const handleDownVote = async (e: React.FormEvent) => {
     e.preventDefault();
     const profId = professor.id;
-    const response = await fetch("http://localhost:8080/downvote", {
+    const response = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/downvote", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",

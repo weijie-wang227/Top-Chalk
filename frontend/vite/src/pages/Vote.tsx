@@ -32,7 +32,7 @@ const Vote = () => {
   useEffect(() => {
     const fetchProfessors = async () => {
       try {
-        const res = await fetch("http://localhost:8080/professors");
+        const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/professors");
         if (!res.ok) throw new Error("Failed to fetch professors");
         const data: Data[] = await res.json();
         setProfessors(data);
@@ -43,7 +43,7 @@ const Vote = () => {
 
     const fetchCategories = async () => {
       try {
-        const res = await fetch("http://localhost:8080/faculties");
+        const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/faculties");
         if (!res.ok) throw new Error("Failed to fetch faculties");
         const data: Data[] = await res.json();
         setFaculties(data);
@@ -63,7 +63,7 @@ const Vote = () => {
         profs.map(async (prof) => {
           try {
             const res = await fetch(
-              `http://localhost:8080/avatarUrl?id=${prof.id}`,
+              `https://top-chalk-659279002644.asia-southeast1.run.app/avatarUrl?id=${prof.id}`,
               {
                 method: "GET",
                 credentials: "include",

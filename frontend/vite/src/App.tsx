@@ -29,7 +29,7 @@ export default function App() {
 
   const checkAuth = async () => {
     try {
-      const res = await fetch("http://localhost:8080/auth/request", {
+      const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/auth/request", {
         method: "GET",
         credentials: "include", // include session cookie
       });
@@ -52,7 +52,7 @@ export default function App() {
 
   const logout = async () => {
     try {
-      const res = await fetch("http://localhost:8080/logout", {
+      const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/logout", {
         method: "POST",
         credentials: "include",
       });

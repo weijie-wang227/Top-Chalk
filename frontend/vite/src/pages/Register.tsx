@@ -20,7 +20,7 @@ const Register = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const response = await fetch("http://localhost:8080/register", {
+    const response = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",

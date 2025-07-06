@@ -19,7 +19,7 @@ const Faculties = () => {
   useEffect(() => {
     const fetchFacultiesAndTopProfs = async () => {
       try {
-        const res = await fetch("http://localhost:8080/faculties");
+        const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/faculties");
         if (!res.ok) throw new Error("Failed to fetch faculties");
 
         const data: Data[] = await res.json();
@@ -49,7 +49,7 @@ const Faculties = () => {
   const fetchTop3Professors = async (facultyId: number): Promise<Teacher[]> => {
     try {
       const res = await fetch(
-        `http://localhost:8080/top3faculties?faculty_id=${facultyId}`
+        `https://top-chalk-659279002644.asia-southeast1.run.app/top3faculties?faculty_id=${facultyId}`
       );
       if (!res.ok) throw new Error("Failed to fetch top professors");
       const data: Teacher[] = await res.json();

@@ -20,7 +20,7 @@ const Categories = () => {
   useEffect(() => {
     const fetchCategoriesAndTopProfs = async () => {
       try {
-        const res = await fetch("http://localhost:8080/categoriesUp");
+        const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/categoriesUp");
         if (!res.ok) throw new Error("Failed to fetch categories");
 
         const data: Data[] = await res.json();
@@ -51,7 +51,7 @@ const Categories = () => {
   ): Promise<Teacher[]> => {
     try {
       const res = await fetch(
-        `http://localhost:8080/top3categories?category_id=${categoryId}`
+        `https://top-chalk-659279002644.asia-southeast1.run.app/top3categories?category_id=${categoryId}`
       );
       if (!res.ok) throw new Error("Failed to fetch top professors");
       const data: Teacher[] = await res.json();

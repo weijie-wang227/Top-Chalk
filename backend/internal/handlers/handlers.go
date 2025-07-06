@@ -125,16 +125,17 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 			Value:    sessionToken,
 			Path:     "/",
 			HttpOnly: true,
-			SameSite: http.SameSiteLaxMode,
+			SameSite: http.SameSiteNoneMode,
 			Expires:  expiry,
-			// Secure: true,  // enable in production (HTTPS)
+		    Secure: true,  // enable in production (HTTPS)
 		})
 		http.SetCookie(w, &http.Cookie{
 			Name:     "current_user",
 			Value:    creds.Username,
 			Path:     "/",
 			HttpOnly: true,
-			SameSite: http.SameSiteLaxMode,
+			Secure: true,
+			SameSite: http.SameSiteNoneMode,
 			Expires:  expiry,
 		})
 
@@ -197,7 +198,8 @@ func AuthStatusHandler(db *sql.DB) http.HandlerFunc {
 					Path:     "/",
 					MaxAge:   -1,
 					HttpOnly: true,
-					SameSite: http.SameSiteLaxMode,
+					Secure: true,
+					SameSite: http.SameSiteNoneMode,
 				})
 
 				http.SetCookie(w, &http.Cookie{
@@ -206,7 +208,8 @@ func AuthStatusHandler(db *sql.DB) http.HandlerFunc {
 					Path:     "/",
 					MaxAge:   -1,
 					HttpOnly: true,
-					SameSite: http.SameSiteLaxMode,
+					Secure: true,
+					SameSite: http.SameSiteNoneMode,
 				})
 
 			}
@@ -256,7 +259,8 @@ func LogoutHandler(db *sql.DB) http.HandlerFunc {
 			Path:     "/",
 			MaxAge:   -1,
 			HttpOnly: true,
-			SameSite: http.SameSiteLaxMode,
+			Secure: true,
+			SameSite: http.SameSiteNoneMode,
 		})
 
 		http.SetCookie(w, &http.Cookie{
@@ -265,7 +269,8 @@ func LogoutHandler(db *sql.DB) http.HandlerFunc {
 			Path:     "/",
 			MaxAge:   -1,
 			HttpOnly: true,
-			SameSite: http.SameSiteLaxMode,
+			Secure: true,
+			SameSite: http.SameSiteNoneMode,
 		})
 
 		// Send success message
