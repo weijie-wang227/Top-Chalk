@@ -21,8 +21,12 @@ const Vote = () => {
   const [query, setQuery] = useState("");
   const [imageMap, setImageMap] = useState<Record<number, string>>({});
   const [profs, setProfessors] = useState<Data[]>([]);
+ 
+  /*
   const [Allfaculties, setAllFaculties] = useState<Data[]>([]);
   const [faculties, setFaculties] = useState<Data[]>([]);
+  */
+
   const navigate = useNavigate();
 
   const handleClick = (prof: Data) => {
@@ -41,6 +45,7 @@ const Vote = () => {
       }
     };
 
+    /*
     const fetchCategories = async () => {
       try {
         const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/faculties");
@@ -51,6 +56,7 @@ const Vote = () => {
         console.error("Error:", err);
       }
     };
+    */
 
     fetchProfessors();
   }, []);

@@ -25,7 +25,9 @@ const Home = () => {
     active: true,
     timeLeft: "",
   });
+  /* For vercel 
   const [canVote, setVote] = useState({});
+  */
 
   useEffect(() => {
     const checkAuth = async () => {

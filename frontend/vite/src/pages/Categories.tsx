@@ -1,4 +1,3 @@
-import { Box } from "@mui/material";
 import Section from "../components/Section";
 import { useState } from "react";
 import { useEffect } from "react";
