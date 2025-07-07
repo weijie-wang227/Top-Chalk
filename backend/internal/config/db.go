@@ -104,6 +104,16 @@ func CreateTables(db *sql.DB) error {
 		FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
 	);`
 
+	createLeaderboardtrackerQuery := `
+	CREATE TABLE IF NOT EXISTS leaderboardtracker (
+		type VARCHAR(100) NOT NULL,
+		leaderboard_id INT,
+		teacher_id INT NOT NULL,
+		streak INT NOT NULL,
+		rank INT NOT NULL,
+		FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE);
+	`
+
 	queries := []struct {
 		name  string
 		query string
@@ -118,6 +128,7 @@ func CreateTables(db *sql.DB) error {
 		{"subcategoriesdown", createSubCategoriesDown},
 		{"downvotes", createDownVotesQuery},
 		{"weeklytracker", createWeeklyQuery},
+		{"leaderboardtracker", createLeaderboardtrackerQuery},
 	}
 
 	for _, q := range queries {

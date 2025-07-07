@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 interface SectionProps {
   title: string;
-  items: Array<{ name: string; votes: number; id: number }>;
+  items: Array<{ name: string; votes: number; id: number; streak: number }>;
 }
 
 const Section = ({ title, items }: SectionProps) => {
@@ -54,7 +54,7 @@ const Section = ({ title, items }: SectionProps) => {
             borderRadius: 3,
             transition: "box-shadow 0.3s ease-in-out",
             "&:hover": { boxShadow: 8 },
-            maxWidth: 600,
+            maxWidth: 800,
             mx: "auto",
           }}
         >
@@ -130,7 +130,8 @@ const Section = ({ title, items }: SectionProps) => {
                           color: "text.primary",
                         }}
                       >
-                        {index + 1}. {prof.name}
+                        {index + 1}. {prof.name}{" "}
+                        {prof.streak > 2 && `🔥${prof.streak}`}
                       </Typography>
                     </Box>
                     <Typography

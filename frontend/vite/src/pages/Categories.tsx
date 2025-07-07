@@ -1,4 +1,3 @@
-import { Box } from "@mui/material";
 import Section from "../components/Section";
 import { useState } from "react";
 import { useEffect } from "react";
@@ -10,6 +9,7 @@ interface Data {
 
 interface Teacher extends Data {
   votes: number;
+  streak: number;
 }
 
 const Categories = () => {
@@ -81,7 +81,7 @@ const Categories = () => {
             if (!items || items.length === 0) return null;
 
             return (
-              <div key={category.id} className="w-full max-w-3xl">
+              <div key={category.id} className="w-full max-w-5xl">
                 <Section title={category.name} items={items} />
               </div>
             );
