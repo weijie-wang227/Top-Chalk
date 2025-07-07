@@ -9,6 +9,7 @@ interface Data {
 
 interface Teacher extends Data {
   votes: number;
+  streak: number;
 }
 
 const Faculties = () => {
@@ -79,7 +80,7 @@ const Faculties = () => {
             if (!items || items.length === 0) return null;
 
             return (
-              <div key={faculty.id} className="w-full max-w-3xl">
+              <div key={faculty.id} className="w-full max-w-4xl">
                 <Section title={faculty.name} items={items} />
               </div>
             );

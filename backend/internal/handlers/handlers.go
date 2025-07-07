@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"strconv"
@@ -342,7 +343,6 @@ func GetProfInfoHandler(db *sql.DB) http.HandlerFunc {
 			return
 		} else if err != nil {
 			http.Error(w, "Server error", http.StatusInternalServerError)
-			log.Printf(err.Error())
 			return
 		}
 
@@ -540,7 +540,6 @@ func GetProfessorsHandler(db *sql.DB) http.HandlerFunc {
 		rows, err := db.Query(q)
 		if err != nil {
 			http.Error(w, "db query failed", http.StatusInternalServerError)
-			log.Printf(err.Error())
 			return
 		}
 		defer rows.Close()
@@ -606,9 +605,10 @@ func GetFacultiesHandler(db *sql.DB) http.HandlerFunc {
 }
 
 type Teacher struct {
-	ID    int    `json:"id"`
-	Name  string `json:"name"`
-	Votes int    `json:"votes"`
+	ID     int    `json:"id"`
+	Name   string `json:"name"`
+	Votes  int    `json:"votes"`
+	Streak int    `json:"streak"`
 }
 
 func GetTop3Handler(db *sql.DB) http.HandlerFunc {
@@ -643,6 +643,22 @@ func GetTop3Handler(db *sql.DB) http.HandlerFunc {
 		if err := rows.Err(); err != nil {
 			http.Error(w, "rows error", http.StatusInternalServerError)
 			return
+		}
+
+		const q1 = `
+			SELECT streak FROM leaderboardtracker WHERE teacher_id = $1 AND type = 'grand';
+		`
+
+		for i := range topTeachers {
+			err = db.QueryRow(q1, topTeachers[i].ID).Scan(&topTeachers[i].Streak)
+			if errors.Is(err, sql.ErrNoRows) {
+				topTeachers[i].Streak = 0
+			} else if err != nil {
+				http.Error(w, "streak check failed", http.StatusInternalServerError)
+				log.Printf(err.Error())
+				return
+			}
+			topTeachers[i].Streak++
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -692,24 +708,40 @@ func GetTop3ByCategoryHandler(db *sql.DB) http.HandlerFunc {
 		}
 		defer rows.Close()
 
-		var results []Teacher
+		var topTeachers []Teacher
 		for rows.Next() {
 			var t Teacher
 			if err := rows.Scan(&t.ID, &t.Name, &t.Votes); err != nil {
 				http.Error(w, "Row scan failed", http.StatusInternalServerError)
 				return
 			}
-			results = append(results, t)
+			topTeachers = append(topTeachers, t)
 		}
 		if err := rows.Err(); err != nil {
 			http.Error(w, "Rows error", http.StatusInternalServerError)
 			return
 		}
 
+		const q1 = `
+			SELECT streak FROM leaderboardtracker WHERE teacher_id = $1 AND type = 'categories' AND leaderboard_id = $2;
+		`
+
+		for i := range topTeachers {
+			err = db.QueryRow(q1, topTeachers[i].ID, categoryID).Scan(&topTeachers[i].Streak)
+			if errors.Is(err, sql.ErrNoRows) {
+				topTeachers[i].Streak = 0
+			} else if err != nil {
+				http.Error(w, "streak check failed", http.StatusInternalServerError)
+				log.Printf(err.Error())
+				return
+			}
+			topTeachers[i].Streak++
+		}
+
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
 
-		if err := json.NewEncoder(w).Encode(results); err != nil {
+		if err := json.NewEncoder(w).Encode(topTeachers); err != nil {
 			http.Error(w, "JSON encode failed", http.StatusInternalServerError)
 			return
 		}
@@ -751,24 +783,40 @@ func GetTop3ByFacultyHandler(db *sql.DB) http.HandlerFunc {
 		}
 		defer rows.Close()
 
-		var results []Teacher
+		var topTeachers []Teacher
 		for rows.Next() {
 			var t Teacher
 			if err := rows.Scan(&t.ID, &t.Name, &t.Votes); err != nil {
 				http.Error(w, "Row scan failed", http.StatusInternalServerError)
 				return
 			}
-			results = append(results, t)
+			topTeachers = append(topTeachers, t)
 		}
 		if err := rows.Err(); err != nil {
 			http.Error(w, "Rows error", http.StatusInternalServerError)
 			return
 		}
 
+		const q1 = `
+			SELECT streak FROM leaderboardtracker WHERE teacher_id = $1 AND type = 'faculties' AND leaderboard_id = $2;
+		`
+
+		for i := range topTeachers {
+			err = db.QueryRow(q1, topTeachers[i].ID, facultyID).Scan(&topTeachers[i].Streak)
+			if errors.Is(err, sql.ErrNoRows) {
+				topTeachers[i].Streak = 0
+			} else if err != nil {
+				http.Error(w, "streak check failed", http.StatusInternalServerError)
+				log.Printf(err.Error())
+				return
+			}
+			topTeachers[i].Streak++
+		}
+
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
 
-		if err := json.NewEncoder(w).Encode(results); err != nil {
+		if err := json.NewEncoder(w).Encode(topTeachers); err != nil {
 			http.Error(w, "JSON encode failed", http.StatusInternalServerError)
 			return
 		}
@@ -1032,7 +1080,6 @@ func CheckVotes(db *sql.DB) http.HandlerFunc {
 		`, studentID, teacherID).Scan(&hasVoted.HasUpvoted)
 		if err2 != nil {
 			http.Error(w, "Failed to check upvote", http.StatusBadRequest)
-			log.Printf(err2.Error())
 			return
 		}
 
@@ -1043,7 +1090,6 @@ func CheckVotes(db *sql.DB) http.HandlerFunc {
 		`, studentID, teacherID).Scan(&hasVoted.HasDownvoted)
 		if err3 != nil {
 			http.Error(w, "failed to check downvote", http.StatusBadRequest)
-			log.Printf(err3.Error())
 			return
 		}
 

@@ -7,6 +7,7 @@ interface Teacher {
   id: number;
   name: string;
   votes: number;
+  streak: number;
 }
 
 const Main = () => {
@@ -68,6 +69,11 @@ const Main = () => {
                 <span className="text-base text-gray-600">
                   {data[1].votes} votes
                 </span>
+                {data[1].streak > 2 && (
+                  <span className="text-base text-yellow-800">
+                    {data[1].streak} 🔥
+                  </span>
+                )}
               </div>
             </div>
 
@@ -79,6 +85,11 @@ const Main = () => {
                 <span className="text-base text-yellow-800">
                   {data[0].votes} votes
                 </span>
+                {data[0].streak > 2 && (
+                  <span className="text-base text-yellow-800">
+                    {data[0].streak} 🔥
+                  </span>
+                )}
               </div>
             </div>
 
@@ -90,6 +101,11 @@ const Main = () => {
                 <span className="text-base text-gray-600">
                   {data[2].votes} votes
                 </span>
+                {data[2].streak > 2 && (
+                  <span className="text-base text-yellow-800">
+                    {data[2].streak} 🔥
+                  </span>
+                )}
               </div>
             </div>
           </div>
