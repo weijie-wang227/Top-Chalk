@@ -1,6 +1,5 @@
 import Section from "../components/Section";
-import { useState } from "react";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 
 interface Data {
   id: number;
@@ -20,7 +19,9 @@ const Faculties = () => {
   useEffect(() => {
     const fetchFacultiesAndTopProfs = async () => {
       try {
-        const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/faculties");
+        const res = await fetch(
+          "https://top-chalk-659279002644.asia-southeast1.run.app/faculties"
+        );
         if (!res.ok) throw new Error("Failed to fetch faculties");
 
         const data: Data[] = await res.json();
