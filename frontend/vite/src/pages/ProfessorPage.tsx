@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import NotesCanvas from "../components/NotesCanvas";
 
 import {
@@ -48,6 +48,8 @@ const ProfessorPage = () => {
   const onSelectCategory = (id: number) => setCategory(id);
   const onSelectDownCategory = (id: number) => setDownCategory(id);
   const onSelectSubCategory = (id: number) => setSubCategory(id);
+
+  const kudosRef = useRef<any>(null);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -192,6 +194,9 @@ const ProfessorPage = () => {
 
   const handleUpVote = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (kudosRef.current) {
+      kudosRef.current.submit();
+    }
     const profId = professor.id;
     const response = await fetch(
       "https://top-chalk-659279002644.asia-southeast1.run.app/upvote",
@@ -311,7 +316,11 @@ const ProfessorPage = () => {
                 Add Kudos Note?
               </Button>
             ) : (
-              <NotesCanvas studentId={studentId} teacherId={professor.id} />
+              <NotesCanvas
+                studentId={studentId}
+                professorId={professor.id}
+                ref={kudosRef}
+              />
             )}
           </Box>
         )}

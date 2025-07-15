@@ -16,6 +16,7 @@ import Dashboard from "./pages/Dashboard";
 import ProfessorPage from "./pages/ProfessorPage";
 import Vote from "./pages/Vote";
 import Home from "./pages/Home";
+import KudosBoard from "./pages/Kudos";
 import { useLocation } from "react-router-dom";
 
 export default function App() {
@@ -29,10 +30,13 @@ export default function App() {
 
   const checkAuth = async () => {
     try {
-      const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/auth/request", {
-        method: "GET",
-        credentials: "include", // include session cookie
-      });
+      const res = await fetch(
+        "https://top-chalk-659279002644.asia-southeast1.run.app/auth/request",
+        {
+          method: "GET",
+          credentials: "include", // include session cookie
+        }
+      );
       const data = await res.json();
 
       if (!res.ok) {
@@ -52,10 +56,13 @@ export default function App() {
 
   const logout = async () => {
     try {
-      const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+      const res = await fetch(
+        "https://top-chalk-659279002644.asia-southeast1.run.app/logout",
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
 
       if (res.ok) {
         console.log("Logged out successfully");
@@ -140,7 +147,10 @@ export default function App() {
             </>
           )}
           {mode == "teacher" && (
-            <Route path="dashboard" element={<Dashboard />} />
+            <>
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="kudos" element={<KudosBoard />} />
+            </>
           )}
           <Route path="/professor/:id" element={<ProfessorPage />} />
         </Routes>

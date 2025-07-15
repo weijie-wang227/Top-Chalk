@@ -31,10 +31,13 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchId = async () => {
       try {
-        const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/auth/request", {
-          method: "GET",
-          credentials: "include",
-        });
+        const res = await fetch(
+          "https://top-chalk-659279002644.asia-southeast1.run.app/auth/request",
+          {
+            method: "GET",
+            credentials: "include",
+          }
+        );
         const data = await res.json();
 
         if (!res.ok) {
@@ -152,11 +155,14 @@ const Dashboard = () => {
       formData.append("teacherId", teacherId.toString());
       formData.append("image", file); // assume file is from <input type="file" />
 
-      const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/upload", {
-        method: "POST",
-        credentials: "include",
-        body: formData, // browser will set correct headers automatically
-      });
+      const res = await fetch(
+        "https://top-chalk-659279002644.asia-southeast1.run.app/uploadAvatar",
+        {
+          method: "POST",
+          credentials: "include",
+          body: formData, // browser will set correct headers automatically
+        }
+      );
 
       const data = await res.json();
 

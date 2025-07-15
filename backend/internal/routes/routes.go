@@ -32,10 +32,15 @@ func NewRouter(db *sql.DB) *mux.Router {
 	r.HandleFunc("/worstCategories", handlers.GetWorstCategories(db)).Methods("GET")
 	r.HandleFunc("/getName", handlers.GetNameHandler(db)).Methods("GET")
 
-	r.HandleFunc("/upload", handlers.UploadAvatarHandler(db)).Methods("POST")
+	r.HandleFunc("/uploadAvatar", handlers.UploadAvatarHandler(db)).Methods("POST")
 	r.HandleFunc("/avatarUrl", handlers.GetAvatarUrl(db)).Methods("GET")
 
 	r.HandleFunc("/checkVote", handlers.CheckVotes(db)).Methods("GET")
+
+	r.HandleFunc("uploadKudos", handlers.UploadKudosHandler(db)).Methods("POST")
+
+	r.HandleFunc("getKudos", handlers.GetKudos(db)).Methods("GET")
+	r.HandleFunc("updateKudos", handlers.UpdateKudos(db)).Methods("POST")
 
 	return r
 }

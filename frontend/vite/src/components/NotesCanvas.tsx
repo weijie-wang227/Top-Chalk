@@ -1,6 +1,19 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, {
+  useRef,
+  useState,
+  useEffect,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 
-export default function NotesCanvas() {
+interface NotesProps {
+  studentId: number;
+  professorId: number;
+}
+const NotesCanvas = forwardRef(function NotesCanvas(
+  { studentId, professorId }: NotesProps,
+  ref: React.Ref<any>
+) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -95,6 +108,38 @@ export default function NotesCanvas() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   };
 
+  useImperativeHandle(ref, () => ({
+    async submit() {
+      const canvas = canvasRef.current!;
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+
+        const formData = new FormData();
+        formData.append("image", blob, `kudos_${studentId}_${professorId}.png`);
+        formData.append("studentId", studentId.toString());
+        formData.append("professorId", professorId.toString());
+
+        try {
+          const res = await fetch(
+            "https://top-chalk-659279002644.asia-southeast1.run.app/uploadKudos",
+            {
+              method: "POST",
+              body: formData,
+            }
+          );
+
+          if (!res.ok) {
+            throw new Error("Failed to upload image");
+          }
+
+          console.log("Upload successful!");
+        } catch (err) {
+          console.error("Error uploading image:", err);
+        }
+      }, "image/png");
+    },
+  }));
+
   return (
     <div className="flex flex-col items-center gap-4">
       <canvas
@@ -150,4 +195,6 @@ export default function NotesCanvas() {
       </div>
     </div>
   );
-}
+});
+
+export default NotesCanvas;
