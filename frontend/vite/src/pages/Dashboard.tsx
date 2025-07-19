@@ -38,6 +38,7 @@ const Dashboard = () => {
           method: "GET",
           credentials: "include",
         });
+
         const data = await res.json();
 
         if (!res.ok) {
@@ -154,12 +155,12 @@ const Dashboard = () => {
       const formData = new FormData();
       formData.append("teacherId", teacherId.toString());
       formData.append("image", file); // assume file is from <input type="file" />
-
       const res = await fetch(`${API}/upload`, {
         method: "POST",
         credentials: "include",
         body: formData, // browser will set correct headers automatically
       });
+
 
       const data = await res.json();
 

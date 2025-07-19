@@ -16,6 +16,7 @@ import Dashboard from "./pages/Dashboard";
 import ProfessorPage from "./pages/ProfessorPage";
 import Vote from "./pages/Vote";
 import Home from "./pages/Home";
+import KudosBoard from "./pages/Kudos";
 import { useLocation } from "react-router-dom";
 
 const API = import.meta.env.VITE_API_BASE_URL;
@@ -88,9 +89,14 @@ export default function App() {
               </>
             )}
             {mode == "teacher" && (
-              <ListItemButton component={Link} to="/dashboard">
-                <ListItemText primary="Dashboard" />
-              </ListItemButton>
+              <>
+                <ListItemButton component={Link} to="/dashboard">
+                  <ListItemText primary="Dashboard" />
+                </ListItemButton>
+                <ListItemButton component={Link} to="/kudos">
+                  <ListItemText primary="Kudos Board" />
+                </ListItemButton>
+              </>
             )}
 
             {mode == "None" ? (
@@ -142,7 +148,10 @@ export default function App() {
             </>
           )}
           {mode == "teacher" && (
-            <Route path="dashboard" element={<Dashboard />} />
+            <>
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="kudos" element={<KudosBoard />} />
+            </>
           )}
           <Route path="/professor/:id" element={<ProfessorPage />} />
         </Routes>

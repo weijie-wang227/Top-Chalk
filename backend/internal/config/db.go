@@ -114,6 +114,26 @@ func CreateTables(db *sql.DB) error {
 		FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE);
 	`
 
+	createKudosQuery := `
+	CREATE TABLE IF NOT EXISTS kudos (
+		id SERIAL PRIMARY KEY,
+		teacher_id INT,
+		student_id INT,
+		url VARCHAR(255),
+		x FLOAT,
+		y FLOAT,
+		z int,
+		FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE,
+		FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE);
+	`
+
+	createReportsQuery := `
+	CREATE TABLE IF NOT EXISTS reports (
+		user_id INT,
+		amount INT,
+		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+	)`
+
 	queries := []struct {
 		name  string
 		query string
@@ -129,6 +149,8 @@ func CreateTables(db *sql.DB) error {
 		{"downvotes", createDownVotesQuery},
 		{"weeklytracker", createWeeklyQuery},
 		{"leaderboardtracker", createLeaderboardtrackerQuery},
+		{"kudos", createKudosQuery},
+		{"reports", createReportsQuery},
 	}
 
 	for _, q := range queries {

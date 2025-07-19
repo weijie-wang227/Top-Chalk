@@ -1,6 +1,5 @@
 import Section from "../components/Section";
-import { useState } from "react";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 
 const API = import.meta.env.VITE_API_BASE_URL;
 
@@ -22,6 +21,7 @@ const Faculties = () => {
   useEffect(() => {
     const fetchFacultiesAndTopProfs = async () => {
       try {
+
         const res = await fetch(`${API}/faculties`);
         if (!res.ok) throw new Error("Failed to fetch faculties");
 

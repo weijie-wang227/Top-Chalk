@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import NotesCanvas from "../components/NotesCanvas";
 
 import {
   Box,
@@ -44,15 +45,20 @@ const ProfessorPage = () => {
   const [studentId, setStudentId] = useState(-1);
   const [cannotUpvote, setUpvote] = useState(false);
   const [cannotDownvote, setDownvote] = useState(false);
+  const [kudosCanvas, setKudosCanvas] = useState(false);
 
   const onSelectCategory = (id: number) => setCategory(id);
   const onSelectDownCategory = (id: number) => setDownCategory(id);
   const onSelectSubCategory = (id: number) => setSubCategory(id);
 
+  const kudosRef = useRef<any>(null);
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
+
         const res = await fetch(`${API}/categoriesUp`);
+        
         if (!res.ok) throw new Error("Failed to fetch categories");
         const data: Data[] = await res.json();
         setCategories(data);
@@ -64,6 +70,7 @@ const ProfessorPage = () => {
     const fetchCategoriesDown = async () => {
       try {
         const res = await fetch(`${API}/categoriesDown`);
+
         if (!res.ok) throw new Error("Failed to fetch categories");
         const data: Data[] = await res.json();
         setDownCategories(data);
@@ -74,7 +81,9 @@ const ProfessorPage = () => {
 
     const fetchInfo = async () => {
       try {
+
         const res = await fetch(`${API}/info?profId=${id}`);
+
         if (!res.ok) throw new Error("Unable to fetch info");
         const info: Data = await res.json();
         setProfessor(info);
@@ -86,6 +95,7 @@ const ProfessorPage = () => {
     const fetchImage = async () => {
       try {
         console.log(id);
+
         const res = await fetch(`${API}/avatarUrl?id=${id}`, {
           method: "GET",
           credentials: "include",
@@ -142,10 +152,12 @@ const ProfessorPage = () => {
   useEffect(() => {
     const fetchStudentId = async () => {
       try {
+
         const res = await fetch(`${API}/auth/request`, {
           method: "GET",
           credentials: "include", // include session cookie
         });
+
         const data = await res.json();
 
         if (!res.ok) {
@@ -180,13 +192,18 @@ const ProfessorPage = () => {
 
   const handleUpVote = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (kudosRef.current) {
+      kudosRef.current.submit();
+    }
     const profId = professor.id;
+
     const response = await fetch(`${API}/upvote`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({ profId, studentId, selectedCategory }),
     });
+
     console.log(response);
 
     if (response.ok) {
@@ -199,15 +216,22 @@ const ProfessorPage = () => {
     }
   };
 
+  const handleKudosCanvas = (e: React.FormEvent) => {
+    e.preventDefault();
+    setKudosCanvas(true);
+  };
+
   const handleDownVote = async (e: React.FormEvent) => {
     e.preventDefault();
     const profId = professor.id;
+
     const response = await fetch(`${API}/downvote`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({ profId, studentId, selectedSubCategory }),
     });
+
 
     console.log(response);
 
@@ -277,6 +301,25 @@ const ProfessorPage = () => {
             />
           ))}
         </Stack>
+        {!cannotUpvote && (
+          <Box textAlign="center" mt={3}>
+            {!kudosCanvas ? (
+              <Button
+                variant="contained"
+                size="large"
+                onClick={handleKudosCanvas}
+              >
+                Add Kudos Note?
+              </Button>
+            ) : (
+              <NotesCanvas
+                studentId={studentId}
+                professorId={professor.id}
+                ref={kudosRef}
+              />
+            )}
+          </Box>
+        )}
         <Box textAlign="center" mt={3}>
           <Button
             variant="contained"
@@ -286,6 +329,7 @@ const ProfessorPage = () => {
           >
             Submit Upvote
           </Button>
+
           {cannotUpvote && (
             <Typography color="text.secondary">Already Upvoted</Typography>
           )}

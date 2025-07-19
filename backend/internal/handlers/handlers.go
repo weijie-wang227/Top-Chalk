@@ -41,7 +41,7 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		// ▶ hash the password
+		// hash the password
 		hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 		if err != nil {
 			http.Error(w, "Password hashing failed", http.StatusInternalServerError)
@@ -128,14 +128,14 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 			HttpOnly: true,
 			SameSite: http.SameSiteNoneMode,
 			Expires:  expiry,
-		    Secure: true,  // enable in production (HTTPS)
+			Secure:   true, // enable in production (HTTPS)
 		})
 		http.SetCookie(w, &http.Cookie{
 			Name:     "current_user",
 			Value:    creds.Username,
 			Path:     "/",
 			HttpOnly: true,
-			Secure: true,
+			Secure:   true,
 			SameSite: http.SameSiteNoneMode,
 			Expires:  expiry,
 		})
@@ -199,7 +199,7 @@ func AuthStatusHandler(db *sql.DB) http.HandlerFunc {
 					Path:     "/",
 					MaxAge:   -1,
 					HttpOnly: true,
-					Secure: true,
+					Secure:   true,
 					SameSite: http.SameSiteNoneMode,
 				})
 
@@ -209,7 +209,7 @@ func AuthStatusHandler(db *sql.DB) http.HandlerFunc {
 					Path:     "/",
 					MaxAge:   -1,
 					HttpOnly: true,
-					Secure: true,
+					Secure:   true,
 					SameSite: http.SameSiteNoneMode,
 				})
 
@@ -260,7 +260,7 @@ func LogoutHandler(db *sql.DB) http.HandlerFunc {
 			Path:     "/",
 			MaxAge:   -1,
 			HttpOnly: true,
-			Secure: true,
+			Secure:   true,
 			SameSite: http.SameSiteNoneMode,
 		})
 
@@ -270,7 +270,7 @@ func LogoutHandler(db *sql.DB) http.HandlerFunc {
 			Path:     "/",
 			MaxAge:   -1,
 			HttpOnly: true,
-			Secure: true,
+			Secure:   true,
 			SameSite: http.SameSiteNoneMode,
 		})
 
@@ -1101,4 +1101,107 @@ func CheckVotes(db *sql.DB) http.HandlerFunc {
 		}
 	}
 
+}
+
+type Kudos struct {
+	Id  int     `json:"id"`
+	X   float32 `json:"x"`
+	Y   float32 `json:"x"`
+	Z   float32 `json:"x"`
+	Url string  `json:"url"`
+}
+
+func GetKudos(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		teacher_id, ok := r.URL.Query()["studentId"]
+		if !ok || len(teacher_id) < 1 {
+			http.Error(w, "student_id parameter is missing", http.StatusBadRequest)
+			log.Printf("student_id missing")
+			return
+		}
+
+		teacherID, err := strconv.Atoi(teacher_id[0])
+		if err != nil {
+			http.Error(w, "Invalid student_id", http.StatusBadRequest)
+			log.Printf("student_id invalid")
+			return
+		}
+
+		query1 := `SELECT id, x, y, z, url FROM kudos WHERE teacherId = $1`
+
+		rows, err1 := db.Query(query1, teacherID)
+		if err1 != nil {
+			http.Error(w, "db query failed", http.StatusInternalServerError)
+			log.Printf("DB query failed")
+			return
+		}
+		defer rows.Close()
+
+		var kudos []Kudos
+		for rows.Next() {
+			var kudo Kudos
+			if err := rows.Scan(&kudo.Id, &kudo.X, &kudo.Y, &kudo.Z, &kudo.Url); err != nil {
+				http.Error(w, "row scan failed", http.StatusInternalServerError)
+				log.Printf("Row scan failed")
+				return
+			}
+			kudos = append(kudos, kudo)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+		if err2 := json.NewEncoder(w).Encode(kudos); err2 != nil {
+			http.Error(w, "JSON encode failed", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+type KudosResponse struct {
+	Kudos    []Kudos `json:"notes"`
+	Deleted  []int   `json:"deletedNotes"`
+	Reported []int   `json:"reportedNotes"`
+}
+
+func UpdateKudos(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var kudos KudosResponse
+		if err := json.NewDecoder(r.Body).Decode(&kudos); err != nil {
+			http.Error(w, "Invalid request", http.StatusBadRequest)
+			return
+		}
+		updateQuery := `
+			UPDATE kudos SET x = $1, y = $2, z = $3 WHERE id = $4;
+		`
+		deleteQuery := `
+			DELETE FROM kudos WHERE id = $1;
+		`
+		reportQuery := `
+			INSERT INTO reports (user_id, amount)
+			SELECT k.student_id, 1 FROM kudos k WHERE id = $1
+			ON CONFLICT (user_id)
+			DO UPDATE SET amount = reports.amount + 1
+		`
+
+		for _, kudo := range kudos.Kudos {
+			_, err := db.Exec(updateQuery, kudo.X, kudo.Y, kudo.Z, kudo.Id)
+			if err != nil {
+				log.Fatalf(err.Error())
+			}
+		}
+
+		for _, id := range kudos.Reported {
+			_, err := db.Exec(reportQuery, id)
+			if err != nil {
+				log.Fatalf(err.Error())
+			}
+		}
+
+		for _, id := range kudos.Deleted {
+			_, err := db.Exec(deleteQuery, id)
+			if err != nil {
+				log.Fatalf(err.Error())
+			}
+		}
+	}
 }
