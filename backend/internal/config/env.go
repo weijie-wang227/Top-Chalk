@@ -18,8 +18,10 @@ func getDSN() string {
 	dbName := os.Getenv("DB_NAME")
 	instanceConnName := os.Getenv("DB_HOST")
 
-	dsn := fmt.Sprintf("user=%s password=%s dbname=%s host=/cloudsql/%s sslmode=disable",
+	dsn := fmt.Sprintf("user=%s password=%s dbname=%s host=%s sslmode=disable",
 		dbUser, dbPass, dbName, instanceConnName)
+
+	fmt.Printf(dsn)
 
 	fmt.Printf("Connecting to DB %s as %s using Unix socket...\n", dbName, dbUser)
 	return dsn

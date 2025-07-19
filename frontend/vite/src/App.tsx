@@ -93,9 +93,14 @@ export default function App() {
               </>
             )}
             {mode == "teacher" && (
-              <ListItemButton component={Link} to="/dashboard">
-                <ListItemText primary="Dashboard" />
-              </ListItemButton>
+              <>
+                <ListItemButton component={Link} to="/dashboard">
+                  <ListItemText primary="Dashboard" />
+                </ListItemButton>
+                <ListItemButton component={Link} to="/kudos">
+                  <ListItemText primary="Kudos Board" />
+                </ListItemButton>
+              </>
             )}
 
             {mode == "None" ? (

@@ -37,10 +37,10 @@ func NewRouter(db *sql.DB) *mux.Router {
 
 	r.HandleFunc("/checkVote", handlers.CheckVotes(db)).Methods("GET")
 
-	r.HandleFunc("uploadKudos", handlers.UploadKudosHandler(db)).Methods("POST")
+	r.HandleFunc("/uploadKudos", handlers.UploadKudosHandler(db)).Methods("POST")
 
-	r.HandleFunc("getKudos", handlers.GetKudos(db)).Methods("GET")
-	r.HandleFunc("updateKudos", handlers.UpdateKudos(db)).Methods("POST")
+	r.HandleFunc("/getKudos", handlers.GetKudos(db)).Methods("GET")
+	r.HandleFunc("/updateKudos", handlers.UpdateKudos(db)).Methods("POST")
 
 	return r
 }

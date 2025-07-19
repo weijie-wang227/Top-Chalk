@@ -125,7 +125,6 @@ func CreateTables(db *sql.DB) error {
 		z int,
 		FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE,
 		FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE);
-	)
 	`
 
 	createReportsQuery := `

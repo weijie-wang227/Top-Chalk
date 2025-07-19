@@ -87,11 +87,14 @@ func UploadAvatarHandler(db *sql.DB) http.HandlerFunc {
 
 func UploadKudosHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("0")
+
 		err := r.ParseMultipartForm(10 << 20)
 		if err != nil {
 			http.Error(w, "Could not parse form", http.StatusBadRequest)
 			return
 		}
+		log.Printf("1")
 
 		teacherId := r.FormValue("teacherId")
 		file, handler, err := r.FormFile("image")
@@ -100,6 +103,7 @@ func UploadKudosHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 		defer file.Close()
+		log.Printf("2")
 
 		// Prepare unique key
 		ext := filepath.Ext(handler.Filename)
@@ -108,6 +112,7 @@ func UploadKudosHandler(db *sql.DB) http.HandlerFunc {
 		url := fmt.Sprintf("https://%s.r2.dev/", accountHash)
 
 		client := config.NewR2Client()
+		log.Printf("3")
 
 		// Upload new avatar
 		buf := new(bytes.Buffer)
@@ -126,6 +131,8 @@ func UploadKudosHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		urlKey := url + key
+
+		log.Printf("4")
 
 		_, err = db.Exec("UPDATE teachers SET url = $1 WHERE id = $2", urlKey, teacherId)
 		if err != nil {
