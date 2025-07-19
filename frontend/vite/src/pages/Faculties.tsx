@@ -1,6 +1,8 @@
 import Section from "../components/Section";
 import { useState, useEffect } from "react";
 
+const API = import.meta.env.VITE_API_BASE_URL;
+
 interface Data {
   id: number;
   name: string;
@@ -19,9 +21,8 @@ const Faculties = () => {
   useEffect(() => {
     const fetchFacultiesAndTopProfs = async () => {
       try {
-        const res = await fetch(
-          "https://top-chalk-659279002644.asia-southeast1.run.app/faculties"
-        );
+
+        const res = await fetch(`${API}/faculties`);
         if (!res.ok) throw new Error("Failed to fetch faculties");
 
         const data: Data[] = await res.json();
@@ -51,7 +52,7 @@ const Faculties = () => {
   const fetchTop3Professors = async (facultyId: number): Promise<Teacher[]> => {
     try {
       const res = await fetch(
-        `https://top-chalk-659279002644.asia-southeast1.run.app/top3faculties?faculty_id=${facultyId}`
+        `${API}/top3faculties?faculty_id=${facultyId}`
       );
       if (!res.ok) throw new Error("Failed to fetch top professors");
       const data: Teacher[] = await res.json();

@@ -11,6 +11,8 @@ import {
   CardContent,
 } from "@mui/material";
 
+const API = import.meta.env.VITE_API_BASE_URL;
+
 const Login = () => {
   const navigate = useNavigate();
   const [username, setName] = useState("");
@@ -21,7 +23,7 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const response = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/login", {
+    const response = await fetch(`${API}/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",

@@ -18,6 +18,8 @@ import {
   CardMedia,
 } from "@mui/material";
 
+const API = import.meta.env.VITE_API_BASE_URL;
+
 interface Data {
   id: number;
   name: string;
@@ -54,9 +56,9 @@ const ProfessorPage = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch(
-          "https://top-chalk-659279002644.asia-southeast1.run.app/categoriesUp"
-        );
+
+        const res = await fetch(`${API}/categoriesUp`);
+        
         if (!res.ok) throw new Error("Failed to fetch categories");
         const data: Data[] = await res.json();
         setCategories(data);
@@ -67,9 +69,8 @@ const ProfessorPage = () => {
 
     const fetchCategoriesDown = async () => {
       try {
-        const res = await fetch(
-          "https://top-chalk-659279002644.asia-southeast1.run.app/categoriesDown"
-        );
+        const res = await fetch(`${API}/categoriesDown`);
+
         if (!res.ok) throw new Error("Failed to fetch categories");
         const data: Data[] = await res.json();
         setDownCategories(data);
@@ -80,9 +81,9 @@ const ProfessorPage = () => {
 
     const fetchInfo = async () => {
       try {
-        const res = await fetch(
-          `https://top-chalk-659279002644.asia-southeast1.run.app/info?profId=${id}`
-        );
+
+        const res = await fetch(`${API}/info?profId=${id}`);
+
         if (!res.ok) throw new Error("Unable to fetch info");
         const info: Data = await res.json();
         setProfessor(info);
@@ -94,13 +95,11 @@ const ProfessorPage = () => {
     const fetchImage = async () => {
       try {
         console.log(id);
-        const res = await fetch(
-          `https://top-chalk-659279002644.asia-southeast1.run.app/avatarUrl?id=${id}`,
-          {
-            method: "GET",
-            credentials: "include",
-          }
-        );
+
+        const res = await fetch(`${API}/avatarUrl?id=${id}`, {
+          method: "GET",
+          credentials: "include",
+        });
         const data = await res.json();
 
         if (!res.ok) {
@@ -126,7 +125,7 @@ const ProfessorPage = () => {
       const fetchCanVote = async () => {
         try {
           const res = await fetch(
-            `https://top-chalk-659279002644.asia-southeast1.run.app/checkVote?studentId=${studentId}&teacherId=${id}`,
+            `${API}/checkVote?studentId=${studentId}&teacherId=${id}`,
             {
               method: "GET",
               credentials: "include",
@@ -153,13 +152,12 @@ const ProfessorPage = () => {
   useEffect(() => {
     const fetchStudentId = async () => {
       try {
-        const res = await fetch(
-          "https://top-chalk-659279002644.asia-southeast1.run.app/auth/request",
-          {
-            method: "GET",
-            credentials: "include", // include session cookie
-          }
-        );
+
+        const res = await fetch(`${API}/auth/request`, {
+          method: "GET",
+          credentials: "include", // include session cookie
+        });
+
         const data = await res.json();
 
         if (!res.ok) {
@@ -178,7 +176,7 @@ const ProfessorPage = () => {
     const fetchSubCat = async () => {
       try {
         const res = await fetch(
-          `https://top-chalk-659279002644.asia-southeast1.run.app/subcategories?category_id=${encodeURIComponent(
+          `${API}/subcategories?category_id=${encodeURIComponent(
             selectedDownCategory
           )}`
         );
@@ -198,15 +196,14 @@ const ProfessorPage = () => {
       kudosRef.current.submit();
     }
     const profId = professor.id;
-    const response = await fetch(
-      "https://top-chalk-659279002644.asia-southeast1.run.app/upvote",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ profId, studentId, selectedCategory }),
-      }
-    );
+
+    const response = await fetch(`${API}/upvote`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ profId, studentId, selectedCategory }),
+    });
+
     console.log(response);
 
     if (response.ok) {
@@ -227,15 +224,14 @@ const ProfessorPage = () => {
   const handleDownVote = async (e: React.FormEvent) => {
     e.preventDefault();
     const profId = professor.id;
-    const response = await fetch(
-      "https://top-chalk-659279002644.asia-southeast1.run.app/downvote",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ profId, studentId, selectedSubCategory }),
-      }
-    );
+
+    const response = await fetch(`${API}/downvote`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ profId, studentId, selectedSubCategory }),
+    });
+
 
     console.log(response);
 

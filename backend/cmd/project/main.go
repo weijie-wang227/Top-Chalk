@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"time"
 	"backend/internal/config"
 	"backend/internal/routes"
 	"backend/internal/tasks"
@@ -16,6 +18,7 @@ func main() {
 	defer db.Close()
 	router := routes.NewRouter(db)
 	go tasks.WeeklyLoop(db)
+	fmt.Println("Current time is:", time.Now())
 
 	corsHandler := handlers.CORS(
 		handlers.AllowedOrigins([]string{"http://localhost:5173", "top-chalk.vercel.app"}),
