@@ -21,6 +21,7 @@ func weeklyReset(db *sql.DB) {
 type Spot struct {
 	streak int
 	id     int
+	rank   int
 }
 
 type Rank struct {
@@ -97,7 +98,7 @@ func weeklyTracker(db *sql.DB) {
 		var prevLead []Spot
 		for prevLeaderboard.Next() {
 			var spot Spot
-			if err := prevLeaderboard.Scan(&spot); err != nil {
+			if err := prevLeaderboard.Scan(&spot.id, &spot.streak, &spot.rank); err != nil {
 				fmt.Println(err)
 				return
 			}

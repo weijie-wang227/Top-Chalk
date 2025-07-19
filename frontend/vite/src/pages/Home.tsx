@@ -7,6 +7,8 @@ import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import HowToVoteIcon from "@mui/icons-material/HowToVote";
 import AccountBoxIcon from "@mui/icons-material/AccountBox";
 
+const API = import.meta.env.VITE_API_BASE_URL;
+
 interface Data {
   userId: number;
   mode: string;
@@ -32,13 +34,13 @@ const Home = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/auth/request", {
+        const res = await fetch(`${API}/auth/request`, {
           method: "GET",
           credentials: "include",
         });
         const data = await res.json();
-        if (!res.ok) throw new Error("Not authenticated");
         setIsAuthenticated(res.ok);
+        if (!res.ok) throw new Error("Not authenticated");
         setInfo(data);
       } catch (err) {
         console.error("Auth check failed:", err);

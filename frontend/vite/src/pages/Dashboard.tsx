@@ -15,6 +15,9 @@ import EditIcon from "@mui/icons-material/Edit";
 import { useState } from "react";
 import { useEffect } from "react";
 
+const API = import.meta.env.VITE_API_BASE_URL;
+
+
 interface WorstData {
   content: string;
   category: string;
@@ -31,7 +34,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchId = async () => {
       try {
-        const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/auth/request", {
+        const res = await fetch(`${API}/auth/request`, {
           method: "GET",
           credentials: "include",
         });
@@ -58,7 +61,7 @@ const Dashboard = () => {
     const fetchBest = async () => {
       try {
         const res = await fetch(
-          `https://top-chalk-659279002644.asia-southeast1.run.app/bestCategories?id=${teacherId}`,
+          `${API}/bestCategories?id=${teacherId}`,
           {
             method: "GET",
             credentials: "include", // include session cookie
@@ -78,7 +81,7 @@ const Dashboard = () => {
     const fetchWorst = async () => {
       try {
         const res = await fetch(
-          `https://top-chalk-659279002644.asia-southeast1.run.app/worstCategories?id=${teacherId}`
+          `${API}/worstCategories?id=${teacherId}`
         );
         const data = await res.json();
         if (!res.ok) {
@@ -93,7 +96,7 @@ const Dashboard = () => {
     const fetchName = async () => {
       try {
         const res = await fetch(
-          `https://top-chalk-659279002644.asia-southeast1.run.app/getName?id=${teacherId}`,
+          `${API}/getName?id=${teacherId}`,
           {
             method: "GET",
             credentials: "include",
@@ -114,7 +117,7 @@ const Dashboard = () => {
     const fetchUrl = async () => {
       try {
         const res = await fetch(
-          `https://top-chalk-659279002644.asia-southeast1.run.app/avatarUrl?id=${teacherId}`,
+          `${API}/avatarUrl?id=${teacherId}`,
           {
             method: "GET",
             credentials: "include",
@@ -152,7 +155,7 @@ const Dashboard = () => {
       formData.append("teacherId", teacherId.toString());
       formData.append("image", file); // assume file is from <input type="file" />
 
-      const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/upload", {
+      const res = await fetch(`${API}/upload`, {
         method: "POST",
         credentials: "include",
         body: formData, // browser will set correct headers automatically

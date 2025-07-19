@@ -18,6 +18,8 @@ import Vote from "./pages/Vote";
 import Home from "./pages/Home";
 import { useLocation } from "react-router-dom";
 
+const API = import.meta.env.VITE_API_BASE_URL;
+
 export default function App() {
   const location = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -29,7 +31,7 @@ export default function App() {
 
   const checkAuth = async () => {
     try {
-      const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/auth/request", {
+      const res = await fetch(`${API}/auth/request`, {
         method: "GET",
         credentials: "include", // include session cookie
       });
@@ -52,7 +54,7 @@ export default function App() {
 
   const logout = async () => {
     try {
-      const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/logout", {
+      const res = await fetch(`${API}/logout`, {
         method: "POST",
         credentials: "include",
       });

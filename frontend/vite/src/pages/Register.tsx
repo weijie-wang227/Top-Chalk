@@ -11,6 +11,8 @@ import {
   CardContent,
 } from "@mui/material";
 
+const API = import.meta.env.VITE_API_BASE_URL;
+
 const Register = () => {
   const navigate = useNavigate();
   const [username, setName] = useState("");
@@ -20,7 +22,7 @@ const Register = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const response = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/register", {
+    const response = await fetch(`${API}/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
