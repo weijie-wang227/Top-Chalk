@@ -2,14 +2,13 @@ package config
 
 import (
 	"fmt"
-	"log"
 	"os"
   
 	/* Enable when testing locally 
 	"log"
 	"github.com/joho/godotenv"
 	*/
-
+)
 /* Enable when testing locally 
 func loadEnv() {
     err := godotenv.Load()
