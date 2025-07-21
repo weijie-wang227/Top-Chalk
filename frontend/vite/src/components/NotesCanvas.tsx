@@ -6,6 +6,8 @@ import React, {
   useImperativeHandle,
 } from "react";
 
+const API = import.meta.env.VITE_API_BASE_URL;
+
 interface NotesProps {
   studentId: number;
   professorId: number;
@@ -120,13 +122,10 @@ const NotesCanvas = forwardRef(function NotesCanvas(
         formData.append("professorId", professorId.toString());
 
         try {
-          const res = await fetch(
-            "https://top-chalk-659279002644.asia-southeast1.run.app/uploadKudos",
-            {
-              method: "POST",
-              body: formData,
-            }
-          );
+          const res = await fetch(`${API}/uploadKudos`, {
+            method: "POST",
+            body: formData,
+          });
 
           if (!res.ok) {
             throw new Error("Failed to upload image");

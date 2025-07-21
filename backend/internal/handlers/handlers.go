@@ -655,7 +655,7 @@ func GetTop3Handler(db *sql.DB) http.HandlerFunc {
 				topTeachers[i].Streak = 0
 			} else if err != nil {
 				http.Error(w, "streak check failed", http.StatusInternalServerError)
-				log.Printf(err.Error())
+				log.Print(err.Error())
 				return
 			}
 			topTeachers[i].Streak++
@@ -732,7 +732,7 @@ func GetTop3ByCategoryHandler(db *sql.DB) http.HandlerFunc {
 				topTeachers[i].Streak = 0
 			} else if err != nil {
 				http.Error(w, "streak check failed", http.StatusInternalServerError)
-				log.Printf(err.Error())
+				log.Print(err.Error())
 				return
 			}
 			topTeachers[i].Streak++
@@ -807,7 +807,7 @@ func GetTop3ByFacultyHandler(db *sql.DB) http.HandlerFunc {
 				topTeachers[i].Streak = 0
 			} else if err != nil {
 				http.Error(w, "streak check failed", http.StatusInternalServerError)
-				log.Printf(err.Error())
+				log.Print(err.Error())
 				return
 			}
 			topTeachers[i].Streak++
@@ -1106,33 +1106,33 @@ func CheckVotes(db *sql.DB) http.HandlerFunc {
 type Kudos struct {
 	Id  int     `json:"id"`
 	X   float32 `json:"x"`
-	Y   float32 `json:"x"`
-	Z   float32 `json:"x"`
+	Y   float32 `json:"y"`
+	Z   float32 `json:"z"`
 	Url string  `json:"url"`
 }
 
 func GetKudos(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		teacher_id, ok := r.URL.Query()["studentId"]
+		teacher_id, ok := r.URL.Query()["teacher_id"]
 		if !ok || len(teacher_id) < 1 {
-			http.Error(w, "student_id parameter is missing", http.StatusBadRequest)
-			log.Printf("student_id missing")
+			http.Error(w, "profId parameter is missing", http.StatusBadRequest)
+			log.Printf("profId missing")
 			return
 		}
 
 		teacherID, err := strconv.Atoi(teacher_id[0])
 		if err != nil {
-			http.Error(w, "Invalid student_id", http.StatusBadRequest)
-			log.Printf("student_id invalid")
+			http.Error(w, "Invalid teacher_id", http.StatusBadRequest)
+			log.Printf("teacher_id invalid")
 			return
 		}
 
-		query1 := `SELECT id, x, y, z, url FROM kudos WHERE teacherId = $1`
+		query1 := `SELECT id, x, y, z, url FROM kudos WHERE teacher_id = $1`
 
 		rows, err1 := db.Query(query1, teacherID)
 		if err1 != nil {
 			http.Error(w, "db query failed", http.StatusInternalServerError)
-			log.Printf("DB query failed")
+			log.Printf("DB query failed: %v", err1)
 			return
 		}
 		defer rows.Close()
@@ -1170,6 +1170,7 @@ func UpdateKudos(db *sql.DB) http.HandlerFunc {
 			http.Error(w, "Invalid request", http.StatusBadRequest)
 			return
 		}
+
 		updateQuery := `
 			UPDATE kudos SET x = $1, y = $2, z = $3 WHERE id = $4;
 		`
@@ -1186,22 +1187,26 @@ func UpdateKudos(db *sql.DB) http.HandlerFunc {
 		for _, kudo := range kudos.Kudos {
 			_, err := db.Exec(updateQuery, kudo.X, kudo.Y, kudo.Z, kudo.Id)
 			if err != nil {
-				log.Fatalf(err.Error())
+				log.Print(err.Error())
 			}
 		}
 
 		for _, id := range kudos.Reported {
 			_, err := db.Exec(reportQuery, id)
 			if err != nil {
-				log.Fatalf(err.Error())
+				log.Print(err.Error())
 			}
 		}
 
 		for _, id := range kudos.Deleted {
 			_, err := db.Exec(deleteQuery, id)
 			if err != nil {
-				log.Fatalf(err.Error())
+				log.Print(err.Error())
 			}
 		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{
+			"message": "Vote successful",
+		})
 	}
 }
