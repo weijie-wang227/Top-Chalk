@@ -1,4 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
+import { IconButton, Menu, MenuItem, Box, Button } from "@mui/material";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+
+const API = import.meta.env.VITE_API_BASE_URL;
 
 interface Note {
   id: number;
@@ -15,76 +19,56 @@ export default function KudosBoard() {
   const [draggingId, setDraggingId] = useState<number | null>(null);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [profId, setId] = useState(-1);
-  const [selectedDropdown, setSelectedDropdown] = useState<number | null>(null);
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const [menuNoteId, setMenuNoteId] = useState<number | null>(null);
   const [deletedNotes, setDeleted] = useState<number[]>([]);
   const [reportedNotes, setReported] = useState<number[]>([]);
 
+  // Fetch user ID
   useEffect(() => {
     const fetchId = async () => {
       try {
-        const res = await fetch(
-          "https://top-chalk-659279002644.asia-southeast1.run.app/auth/request",
-          {
-            method: "GET",
-            credentials: "include",
-          }
-        );
+        const res = await fetch(`${API}/auth/request`, {
+          method: "GET",
+          credentials: "include",
+        });
         const data = await res.json();
-
-        if (!res.ok) {
-          console.error("Auth error:", data.error);
-          throw new Error("Not authenticated");
-        }
-
-        setId(data.userId); // This will trigger the next useEffect
+        if (!res.ok) throw new Error("Not authenticated");
+        setId(data.userId);
       } catch (err) {
         console.error("Auth check failed:", err);
       }
     };
-
     fetchId();
   }, []);
 
+  // Fetch kudos notes
   useEffect(() => {
     if (profId !== -1) {
       const fetchKudos = async () => {
         try {
           const res = await fetch(
-            "https://top-chalk-659279002644.asia-southeast1.run.app/getKudos",
-            {
-              method: "GET",
-              credentials: "include",
-            }
+            `${API}/getKudos?teacher_id=${encodeURIComponent(profId)}`,
+            { method: "GET", credentials: "include" }
           );
           const data = await res.json();
-
-          if (!res.ok) {
-            console.error("Fetch Kudos failed:", data.error);
-            throw new Error("Not authenticated");
-          }
-
+          if (!res.ok) throw new Error("Fetch Kudos failed");
           setNotes(data);
         } catch (err) {
           console.error("Fetch Kudos failed:", err);
         }
       };
-
       fetchKudos();
     }
-  }, []);
+  }, [profId]);
 
-  const handleMouseDown = (
-    e: React.MouseEvent,
-    _id: number,
-    _x: number,
-    _y: number
-  ) => {
+  // Dragging
+  const handleMouseDown = (e: React.MouseEvent) => {
     const rect = boardRef.current?.getBoundingClientRect();
     if (!rect) return;
+
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
-
-    // Find all notes under cursor
     const sorted = [...notes].sort((a, b) => b.z - a.z);
     const clicked = sorted.find(
       (note) =>
@@ -93,7 +77,6 @@ export default function KudosBoard() {
         mouseY >= rect.height / 2 + note.y &&
         mouseY <= rect.height / 2 + note.y + 160
     );
-
     if (!clicked) return;
 
     const newZ = Math.max(...notes.map((n) => n.z)) + 1;
@@ -128,9 +111,7 @@ export default function KudosBoard() {
     }
   };
 
-  const handleMouseUp = () => {
-    setDraggingId(null);
-  };
+  const handleMouseUp = () => setDraggingId(null);
 
   useEffect(() => {
     window.addEventListener("mousemove", handleMouseMove);
@@ -141,118 +122,114 @@ export default function KudosBoard() {
     };
   }, [draggingId, offset]);
 
-  const handleDelete = (id: number) => {
-    setNotes((prev) => prev.filter((note) => note.id !== id));
-    setDeleted((prev) => [...prev, id]);
+  // Menu actions
+  const openMenu = (e: React.MouseEvent<HTMLButtonElement>, noteId: number) => {
+    e.stopPropagation();
+    setMenuAnchor(e.currentTarget);
+    setMenuNoteId(noteId);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const response = await fetch(
-      "https://top-chalk-659279002644.asia-southeast1.run.app/downvote",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ notes, deletedNotes, reportedNotes }),
-      }
-    );
+  const closeMenu = () => setMenuAnchor(null);
 
-    console.log(response);
+  const handleDelete = (id: number) => {
+    if (window.confirm("Are you sure you want to delete this note?")) {
+      setNotes((prev) => prev.filter((note) => note.id !== id));
+      setDeleted((prev) => [...prev, id]);
+    }
+    closeMenu();
+  };
 
+  const handleReport = (id: number) => {
+    if (window.confirm("Do you want to report this note?")) {
+      setReported((prev) => [...prev, id]);
+      setNotes((prev) => prev.filter((note) => note.id !== id));
+    }
+    closeMenu();
+  };
+
+  const handleSubmit = async () => {
+    const response = await fetch(`${API}/updateKudos`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ notes, deletedNotes, reportedNotes }),
+    });
     if (response.ok) {
-      const data = await response.json();
-      console.log(data.message);
+      console.log(await response.json());
     } else {
-      console.log("Submit failed");
+      console.error("Submit failed");
     }
   };
 
   return (
-    <div
+    <Box
       ref={boardRef}
-      className="relative w-full h-screen overflow-hidden bg-white"
+      sx={{
+        position: "relative",
+        width: "100%",
+        height: "100vh",
+        bgcolor: "white",
+      }}
     >
       {notes
         .sort((a, b) => a.z - b.z)
         .map((note) => (
-          <div
+          <Box
             key={note.id}
-            onMouseDown={(e) => handleMouseDown(e, note.id, note.x, note.y)}
-            className={`absolute cursor-move rounded-lg shadow-md border-4 transition duration-150 ease-in-out ${
-              selectedNoteId === note.id
-                ? "border-blue-400"
-                : "border-transparent"
-            }`}
-            style={{
+            onMouseDown={handleMouseDown}
+            sx={{
+              position: "absolute",
               left: `calc(50% + ${note.x}px)`,
               top: `calc(50% + ${note.y}px)`,
+              border:
+                selectedNoteId === note.id
+                  ? "2px solid #42a5f5"
+                  : "2px solid transparent",
+              borderRadius: 0, // <--- square corners
+              boxShadow: 2,
+              display: "inline-block", // fits around the image
+              cursor: "move",
               zIndex: note.z,
             }}
           >
-            <div className="relative">
-              <img
-                src={note.url}
-                alt="note"
-                className="w-40 h-40 object-contain"
-              />
-              {/* Dropdown Button */}
-              <div className="absolute top-1 right-1">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedDropdown(note.id);
-                  }}
-                  className="bg-white border border-gray-300 text-black rounded-full w-6 h-6 text-sm flex items-center justify-center shadow"
-                >
-                  ⋮
-                </button>
-                {/* Dropdown Menu */}
-                {selectedDropdown === note.id && (
-                  <div className="absolute right-0 mt-2 w-28 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const confirmed = window.confirm(
-                          "Are you sure you want to delete this note?"
-                        );
-                        if (confirmed) handleDelete(note.id);
-                        setSelectedDropdown(null);
-                      }}
-                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                    >
-                      Delete
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const confirmed = window.confirm(
-                          "Do you want to report this note?"
-                        );
-                        if (confirmed) {
-                          console.log("Reported note:", note.id);
-                          setReported((prev) => [...prev, note.id]);
-                          handleDelete(note.id);
-                        }
-                        setSelectedDropdown(null);
-                      }}
-                      className="block w-full text-left px-4 py-2 text-sm text-yellow-600 hover:bg-yellow-50"
-                    >
-                      Report
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+            <img
+              src={note.url}
+              alt="note"
+              style={{ width: 160, height: 160, display: "block" }}
+            />
+            <IconButton
+              size="small"
+              onClick={(e) => openMenu(e, note.id)}
+              sx={{
+                position: "absolute",
+                top: 4,
+                right: 4,
+                bgcolor: "white",
+                borderRadius: "50%", // keep icon button circular
+              }}
+            >
+              <MoreVertIcon />
+            </IconButton>
+          </Box>
         ))}
 
-      <button
+      <Menu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={closeMenu}
+      >
+        <MenuItem onClick={() => handleDelete(menuNoteId!)}>Delete</MenuItem>
+        <MenuItem onClick={() => handleReport(menuNoteId!)}>Report</MenuItem>
+      </Menu>
+
+      <Button
+        variant="contained"
+        color="success"
         onClick={handleSubmit}
-        className="fixed bottom-4 right-4 bg-emerald-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-emerald-700"
+        sx={{ position: "fixed", bottom: 16, right: 16 }}
       >
         Submit Changes
-      </button>
-    </div>
+      </Button>
+    </Box>
   );
 }

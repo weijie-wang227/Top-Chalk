@@ -87,32 +87,28 @@ func UploadAvatarHandler(db *sql.DB) http.HandlerFunc {
 
 func UploadKudosHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("0")
 
 		err := r.ParseMultipartForm(10 << 20)
 		if err != nil {
 			http.Error(w, "Could not parse form", http.StatusBadRequest)
 			return
 		}
-		log.Printf("1")
-
-		teacherId := r.FormValue("teacherId")
+		teacherId := r.FormValue("professorId")
+		studentId := r.FormValue("studentId")
 		file, handler, err := r.FormFile("image")
 		if err != nil {
 			http.Error(w, "Missing image", http.StatusBadRequest)
 			return
 		}
 		defer file.Close()
-		log.Printf("2")
 
 		// Prepare unique key
 		ext := filepath.Ext(handler.Filename)
 		key := fmt.Sprintf("kudos/%s/%s%s", teacherId, uuid.New().String(), ext)
 		accountHash := os.Getenv("R2_ACCOUNT_HASH")
-		url := fmt.Sprintf("https://%s.r2.dev/", accountHash)
+		url := fmt.Sprintf("https://pub-%s.r2.dev/", accountHash)
 
 		client := config.NewR2Client()
-		log.Printf("3")
 
 		// Upload new avatar
 		buf := new(bytes.Buffer)
@@ -132,11 +128,10 @@ func UploadKudosHandler(db *sql.DB) http.HandlerFunc {
 
 		urlKey := url + key
 
-		log.Printf("4")
-
-		_, err = db.Exec("UPDATE teachers SET url = $1 WHERE id = $2", urlKey, teacherId)
+		_, err = db.Exec("INSERT INTO kudos (teacher_id, student_id, url, x, y, z) VALUES ($1, $2, $3, 0,0,0)", teacherId, studentId, urlKey)
 		if err != nil {
 			http.Error(w, "Failed to save kudos URL", http.StatusInternalServerError)
+			log.Println("DB Error:", err)
 			return
 		}
 

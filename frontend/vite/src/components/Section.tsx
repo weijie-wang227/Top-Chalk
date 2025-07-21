@@ -6,6 +6,8 @@ interface SectionProps {
   items: Array<{ name: string; votes: number; id: number; streak: number }>;
 }
 
+const API = import.meta.env.VITE_API_BASE_URL;
+
 const Section = ({ title, items }: SectionProps) => {
   const textVariants = ["h4", "h5", "h6"] as const;
 
@@ -17,13 +19,10 @@ const Section = ({ title, items }: SectionProps) => {
       await Promise.all(
         items.map(async (prof) => {
           try {
-            const res = await fetch(
-              `http://localhost:8080/avatarUrl?id=${prof.id}`,
-              {
-                method: "GET",
-                credentials: "include",
-              }
-            );
+            const res = await fetch(`${API}/avatarUrl?id=${prof.id}`, {
+              method: "GET",
+              credentials: "include",
+            });
             const data = await res.json();
             if (res.ok && data.url) {
               urls[prof.id] = data.url;
