@@ -17,7 +17,6 @@ import { useEffect } from "react";
 
 const API = import.meta.env.VITE_API_BASE_URL;
 
-
 interface WorstData {
   content: string;
   category: string;
@@ -61,13 +60,10 @@ const Dashboard = () => {
 
     const fetchBest = async () => {
       try {
-        const res = await fetch(
-          `${API}/bestCategories?id=${teacherId}`,
-          {
-            method: "GET",
-            credentials: "include", // include session cookie
-          }
-        );
+        const res = await fetch(`${API}/bestCategories?id=${teacherId}`, {
+          method: "GET",
+          credentials: "include", // include session cookie
+        });
         const data = await res.json();
         if (!res.ok) {
           console.error(data.error);
@@ -81,9 +77,7 @@ const Dashboard = () => {
 
     const fetchWorst = async () => {
       try {
-        const res = await fetch(
-          `${API}/worstCategories?id=${teacherId}`
-        );
+        const res = await fetch(`${API}/worstCategories?id=${teacherId}`);
         const data = await res.json();
         if (!res.ok) {
           console.error(data.error);
@@ -96,13 +90,10 @@ const Dashboard = () => {
     };
     const fetchName = async () => {
       try {
-        const res = await fetch(
-          `${API}/getName?id=${teacherId}`,
-          {
-            method: "GET",
-            credentials: "include",
-          }
-        );
+        const res = await fetch(`${API}/getName?id=${teacherId}`, {
+          method: "GET",
+          credentials: "include",
+        });
         const data = await res.json();
 
         if (!res.ok) {
@@ -117,13 +108,10 @@ const Dashboard = () => {
     };
     const fetchUrl = async () => {
       try {
-        const res = await fetch(
-          `${API}/avatarUrl?id=${teacherId}`,
-          {
-            method: "GET",
-            credentials: "include",
-          }
-        );
+        const res = await fetch(`${API}/avatarUrl?id=${teacherId}`, {
+          method: "GET",
+          credentials: "include",
+        });
         const data = await res.json();
 
         if (!res.ok) {
@@ -160,7 +148,6 @@ const Dashboard = () => {
         credentials: "include",
         body: formData, // browser will set correct headers automatically
       });
-
 
       const data = await res.json();
 
