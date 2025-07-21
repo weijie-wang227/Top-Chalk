@@ -10,7 +10,7 @@ import {
   Paper,
 } from "@mui/material";
 import { Search } from "lucide-react";
-import { X } from "lucide-react"
+import { X } from "lucide-react";
 
 interface Data {
   id: number;
@@ -24,38 +24,31 @@ interface FilterCategory {
   subcategories: { id: string; name: string }[];
 }
 
-const API = import.meta.env.VITE_API_BASE_URL;
-
 const filter: FilterCategory[] = [
   {
-    id: "1", name: "Faculty", subcategories: [
+    id: "1",
+    name: "Faculties",
+    subcategories: [
       { id: "1", name: "Medicine" },
-      { id: "2", name: "Nursing" },
-      { id: "3", name: "Business" }
-    ]
-  }
+      { id: "2", name: "Business" },
+      { id: "3", name: "Nursing" },
+    ],
+  },
 ];
 
-const Vote = () => {
+const API = import.meta.env.VITE_API_BASE_URL;
 
+const Vote = () => {
   const [query, setQuery] = useState("");
   const [imageMap, setImageMap] = useState<Record<number, string>>({});
   const [profs, setProfessors] = useState<Data[]>([]);
-  const [filterData, setFilterData] = useState<FilterCategory[]>(filter);
+  const [filterData, setFilterData] = useState<FilterCategory[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<{
     category: string;
     subcategory: string;
   } | null>(null);
 
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
-
-
-
-
-  /*
-  const [Allfaculties, setAllFaculties] = useState<Data[]>([]);
-  const [faculties, setFaculties] = useState<Data[]>([]);
-  */
 
   const navigate = useNavigate();
 
@@ -75,20 +68,8 @@ const Vote = () => {
       }
     };
 
-    /*
-    const fetchCategories = async () => {
-      try {
-        const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/faculties");
-        if (!res.ok) throw new Error("Failed to fetch faculties");
-        const data: Data[] = await res.json();
-        setFaculties(data);
-      } catch (err) {
-        console.error("Error:", err);
-      }
-    };
-    */
-
     fetchProfessors();
+    setFilterData(filter);
   }, []);
 
   useEffect(() => {
@@ -98,13 +79,10 @@ const Vote = () => {
       await Promise.all(
         profs.map(async (prof) => {
           try {
-            const res = await fetch(
-              `${API}/avatarUrl?id=${prof.id}`,
-              {
-                method: "GET",
-                credentials: "include",
-              }
-            );
+            const res = await fetch(`${API}/avatarUrl?id=${prof.id}`, {
+              method: "GET",
+              credentials: "include",
+            });
             const data = await res.json();
 
             if (!res.ok) {
@@ -138,7 +116,10 @@ const Vote = () => {
     }
   };
 
-  const handleFilterSelect = (categoryName: string, subcategoryName: string) => {
+  const handleFilterSelect = (
+    categoryName: string,
+    subcategoryName: string
+  ) => {
     setSelectedFilter({
       category: categoryName,
       subcategory: subcategoryName,
@@ -148,8 +129,6 @@ const Vote = () => {
   const clearFilter = () => {
     setSelectedFilter(null);
   };
-
-
 
   return (
     <Box sx={{ p: 2 }}>
@@ -182,16 +161,16 @@ const Vote = () => {
           <div className="relative inline-block">
             <div className="group">
               <button
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all duration-200 ease-in-out hover:bg-green-200 hover:border-green-700 hover:text-green-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${selectedFilter
-                  ? "bg-green-100 border-green-300 text-green-700"
-                  : "bg-white border-gray-300 text-gray-700"
-                  }`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all duration-200 ease-in-out hover:bg-green-200 hover:border-green-700 hover:text-green-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${
+                  selectedFilter
+                    ? "bg-green-100 border-green-300 text-green-700"
+                    : "bg-white border-gray-300 text-gray-700"
+                }`}
               >
                 <span className="font-medium">
                   {selectedFilter
                     ? `${selectedFilter.category}: ${selectedFilter.subcategory}`
-                    : 'Filter'
-                  }
+                    : "Filter"}
                 </span>
                 {selectedFilter && (
                   <button
@@ -215,7 +194,9 @@ const Vote = () => {
                     onMouseLeave={() => setHoveredCategory(null)}
                   >
                     <div className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 flex items-center justify-between group/item">
-                      <span className="text-gray-700 font-medium">{category.name}</span>
+                      <span className="text-gray-700 font-medium">
+                        {category.name}
+                      </span>
                     </div>
 
                     {hoveredCategory === category.id && (
@@ -223,7 +204,12 @@ const Vote = () => {
                         {category.subcategories.map((subcategory) => (
                           <button
                             key={subcategory.id}
-                            onClick={() => handleFilterSelect(category.name, subcategory.name)}
+                            onClick={() =>
+                              handleFilterSelect(
+                                category.name,
+                                subcategory.name
+                              )
+                            }
                             className="w-full px-4 py-2.5 text-left hover:bg-green-50 hover:text-green-700 transition-colors border-b border-gray-100 last:border-b-0 text-gray-600 text-sm"
                           >
                             {subcategory.name}
