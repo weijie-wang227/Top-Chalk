@@ -1,14 +1,15 @@
 package main
 
 import (
-	"fmt"
-	"time"
 	"backend/internal/config"
 	"backend/internal/routes"
 	"backend/internal/tasks"
+	"fmt"
 	"log"
-	"net/http" 
+	"net/http"
 	"os"
+	"time"
+
 	"github.com/gorilla/handlers"
 )
 
@@ -21,7 +22,8 @@ func main() {
 	fmt.Println("Current time is:", time.Now())
 
 	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://localhost:5173", "top-chalk.vercel.app"}),
+		handlers.AllowedOrigins([]string{"http://localhost:5173",
+			"https://weijie-wang227.github.io"}),
 		handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"}),
 		handlers.AllowedHeaders([]string{"Content-Type"}),
 		handlers.AllowCredentials(),

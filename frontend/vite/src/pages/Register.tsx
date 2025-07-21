@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   TextField,
@@ -9,15 +9,41 @@ import {
   Stack,
   Card,
   CardContent,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
 } from "@mui/material";
 
 const API = import.meta.env.VITE_API_BASE_URL;
+
+interface Data {
+  id: number;
+  name: string;
+}
 
 const Register = () => {
   const navigate = useNavigate();
   const [username, setName] = useState("");
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState("student");
+  const [allFaculties, setAllFaculties] = useState<Data[]>([]);
+  const [faculty, setFaculty] = useState(-1);
+
+  useEffect(() => {
+    const fetchFaculties = async () => {
+      try {
+        const res = await fetch(`${API}/faculties`);
+
+        if (!res.ok) throw new Error("Failed to fetch faculties");
+        const data: Data[] = await res.json();
+        setAllFaculties(data);
+      } catch (err) {
+        console.error("Error:", err);
+      }
+    };
+    fetchFaculties();
+  }, []);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +52,7 @@ const Register = () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ username, password, mode }),
+      body: JSON.stringify({ username, password, mode, faculty }),
     });
 
     if (response.ok) {
@@ -34,7 +60,19 @@ const Register = () => {
       console.log(data.message);
       navigate("/login");
     } else {
-      console.log("Registration failed");
+      const errorData = await response.json();
+
+      if (response.status === 409) {
+        console.log("Registration failed");
+        console.log(errorData);
+        alert(errorData.error);
+      } else {
+        console.log(
+          "Registration failed:",
+          errorData.message || "Unknown error"
+        );
+        alert(errorData.message || "Something went wrong");
+      }
     }
   };
 
@@ -52,7 +90,9 @@ const Register = () => {
             <h1 className="text-3xl font-bold bg-gradient-to-r from-green-700 to-green-600 bg-clip-text text-transparent mb-2">
               TopChalk
             </h1>
-            <p className="text-gray-600">Register to start voting and competing</p>
+            <p className="text-gray-600">
+              Register to start voting and competing
+            </p>
           </div>
 
           <Card>
@@ -61,7 +101,7 @@ const Register = () => {
                 variant="h5"
                 fontWeight="bold"
                 textAlign="center"
-                sx={{ mb: 0, fontFamily: 'Poppins, sans-serif' }}
+                sx={{ mb: 0, fontFamily: "Poppins, sans-serif" }}
               >
                 Create an Account
               </Typography>
@@ -127,6 +167,25 @@ const Register = () => {
                       Professor
                     </ToggleButton>
                   </ToggleButtonGroup>
+
+                  {/* Faculty Dropdown (only show if user selects 'teacher') */}
+                  {mode === "teacher" && (
+                    <FormControl fullWidth>
+                      <InputLabel>Faculty</InputLabel>
+                      <Select
+                        value={faculty}
+                        onChange={(e) => setFaculty(e.target.value)}
+                        label="Faculty"
+                      >
+                        {allFaculties &&
+                          allFaculties.map((fac: Data) => (
+                            <MenuItem key={fac.id} value={fac.id}>
+                              {fac.name}
+                            </MenuItem>
+                          ))}
+                      </Select>
+                    </FormControl>
+                  )}
 
                   <Button
                     type="submit"

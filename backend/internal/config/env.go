@@ -3,26 +3,23 @@ package config
 import (
 	"fmt"
 	"os"
-
-  
-	/* Enable when testing locally 
-	"log"
-	"github.com/joho/godotenv"
-	*/
+	// Enable when testing locally
+	//"log"
+	//"github.com/joho/godotenv"
 )
-/* Enable when testing locally 
-func loadEnv() {
-    err := godotenv.Load()
-    if err != nil {
-        log.Fatal("Error loading .env file")
-    }
-}
-*/
+
+// Enable when testing locally
+/*func loadEnv() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+}*/
 
 func getDSN() string {
 
 	// Enable when testing locally
-	// loadEnv()
+	//loadEnv()
 
 	dbUser := os.Getenv("DB_USER")
 	dbPass := os.Getenv("DB_PASS")
@@ -34,13 +31,11 @@ func getDSN() string {
 		dbUser, dbPass, dbName, instanceConnName)
 
 	// For local testing
-	/*
-		dbPort := os.Getenv("DB_PORT")
-		dsn := fmt.Sprintf(
-			"postgres://%s:%s@%s:%s/%s?sslmode=disable",
-			dbUser, dbPass, instanceConnName, dbPort, dbName,
-		)
-	*/
+	/*dbPort := os.Getenv("DB_PORT")
+	dsn := fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		dbUser, dbPass, instanceConnName, dbPort, dbName,
+	)*/
 
 	fmt.Printf("Connecting to DB %s as %s using Unix socket...\n", dbName, dbUser)
 	return dsn

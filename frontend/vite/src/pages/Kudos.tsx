@@ -171,47 +171,48 @@ export default function KudosBoard() {
         bgcolor: "white",
       }}
     >
-      {notes
-        .sort((a, b) => a.z - b.z)
-        .map((note) => (
-          <Box
-            key={note.id}
-            onMouseDown={handleMouseDown}
-            sx={{
-              position: "absolute",
-              left: `calc(50% + ${note.x}px)`,
-              top: `calc(50% + ${note.y}px)`,
-              border:
-                selectedNoteId === note.id
-                  ? "2px solid #42a5f5"
-                  : "2px solid transparent",
-              borderRadius: 0, // <--- square corners
-              boxShadow: 2,
-              display: "inline-block", // fits around the image
-              cursor: "move",
-              zIndex: note.z,
-            }}
-          >
-            <img
-              src={note.url}
-              alt="note"
-              style={{ width: 160, height: 160, display: "block" }}
-            />
-            <IconButton
-              size="small"
-              onClick={(e) => openMenu(e, note.id)}
+      {notes &&
+        notes
+          .sort((a, b) => a.z - b.z)
+          .map((note) => (
+            <Box
+              key={note.id}
+              onMouseDown={handleMouseDown}
               sx={{
                 position: "absolute",
-                top: 4,
-                right: 4,
-                bgcolor: "white",
-                borderRadius: "50%", // keep icon button circular
+                left: `calc(50% + ${note.x}px)`,
+                top: `calc(50% + ${note.y}px)`,
+                border:
+                  selectedNoteId === note.id
+                    ? "2px solid #42a5f5"
+                    : "2px solid transparent",
+                borderRadius: 0, // <--- square corners
+                boxShadow: 2,
+                display: "inline-block", // fits around the image
+                cursor: "move",
+                zIndex: note.z,
               }}
             >
-              <MoreVertIcon />
-            </IconButton>
-          </Box>
-        ))}
+              <img
+                src={note.url}
+                alt="note"
+                style={{ width: 160, height: 160, display: "block" }}
+              />
+              <IconButton
+                size="small"
+                onClick={(e) => openMenu(e, note.id)}
+                sx={{
+                  position: "absolute",
+                  top: 4,
+                  right: 4,
+                  bgcolor: "white",
+                  borderRadius: "50%", // keep icon button circular
+                }}
+              >
+                <MoreVertIcon />
+              </IconButton>
+            </Box>
+          ))}
 
       <Menu
         anchorEl={menuAnchor}

@@ -18,6 +18,7 @@ type LoginRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 	Mode     string `json:"mode"`
+	Faculty  int    `json:"faculty"`
 }
 
 func RegisterHandler(db *sql.DB) http.HandlerFunc {
@@ -25,6 +26,7 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 		var req LoginRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			http.Error(w, "Invalid request", http.StatusBadRequest)
+			log.Print(err.Error())
 			return
 		}
 
@@ -33,11 +35,15 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 		if err := db.QueryRow(`SELECT COUNT(*) FROM users WHERE username = $1`, req.Username).
 			Scan(&existing); err != nil {
 			http.Error(w, "Database error", http.StatusInternalServerError)
-			log.Print(err)
+			log.Print(err.Error())
 			return
 		}
+
 		if existing > 0 {
-			http.Error(w, "User already exists", http.StatusConflict)
+			w.WriteHeader(http.StatusConflict)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error": "User already exists",
+			})
 			return
 		}
 
@@ -45,21 +51,34 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 		hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 		if err != nil {
 			http.Error(w, "Password hashing failed", http.StatusInternalServerError)
+			log.Print(err.Error())
 			return
 		}
 
-		// Store hash (NOT the raw password)
-		_, err = db.Exec(
-			`INSERT INTO users (username, password, mode) VALUES ($1, $2, $3)`,
+		var userID int
+		err = db.QueryRow(
+			`INSERT INTO users (username, password, mode) 
+			VALUES ($1, $2, $3) 
+			RETURNING id`,
 			req.Username, string(hash), req.Mode,
-		)
+		).Scan(&userID)
+
 		if err != nil {
-			http.Error(w, "Failed to register user", http.StatusInternalServerError)
-			log.Print(err)
+			log.Printf("Query failed: %v", err)
+			http.Error(w, "Database error", http.StatusInternalServerError)
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
+		if req.Mode == "teacher" {
+			_, err = db.Exec(
+				`INSERT INTO teachers (id, name, avatar_url, faculty_id) VALUES ($1, $2, '', $3)`, userID, req.Username, req.Faculty)
+
+			if err != nil {
+				log.Printf("Insert failed: %v", err)
+				http.Error(w, "Database error", http.StatusInternalServerError)
+			}
+		}
+
 		json.NewEncoder(w).Encode(map[string]string{"message": "Registration successful"})
 	}
 }
@@ -69,6 +88,7 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 		var creds LoginRequest
 		if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
 			http.Error(w, "Invalid request", http.StatusBadRequest)
+			log.Print(err.Error())
 			return
 		}
 
@@ -83,10 +103,12 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 
 		if err == sql.ErrNoRows {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			log.Print(err.Error())
 			return
 		}
 		if err != nil {
 			http.Error(w, "Server error", http.StatusInternalServerError)
+			log.Print(err.Error())
 			return
 		}
 
@@ -118,6 +140,7 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 			`INSERT INTO sessions (session_id, user_id, mode, expires_at) VALUES ($1,$2,$3,$4)`,
 			sessionToken, userID, creds.Mode, expiry); err != nil {
 			http.Error(w, "Could not create session", http.StatusInternalServerError)
+			log.Print(err.Error())
 			return
 		}
 
@@ -175,7 +198,6 @@ func AuthStatusHandler(db *sql.DB) http.HandlerFunc {
 
 		if err == sql.ErrNoRows || time.Now().After(expiry) {
 			if err == sql.ErrNoRows {
-				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusInternalServerError)
 				json.NewEncoder(w).Encode(map[string]string{
 					"error": "session doesnt exist",
@@ -185,7 +207,6 @@ func AuthStatusHandler(db *sql.DB) http.HandlerFunc {
 
 				_, err = db.Exec("DELETE FROM sessions WHERE expires_at = $1", expiry)
 				if err != nil {
-					w.Header().Set("Content-Type", "application/json")
 					w.WriteHeader(http.StatusInternalServerError)
 					json.NewEncoder(w).Encode(map[string]string{
 						"error": err.Error(),
@@ -221,7 +242,6 @@ func AuthStatusHandler(db *sql.DB) http.HandlerFunc {
 			}))
 			return
 		} else if err != nil {
-			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(map[string]string{
 				"error": err.Error(),
@@ -243,6 +263,7 @@ func LogoutHandler(db *sql.DB) http.HandlerFunc {
 		cookie, err := r.Cookie("session_id")
 		if err != nil {
 			http.Error(w, "No active session", http.StatusBadRequest)
+			log.Print(err.Error())
 			return
 		}
 
@@ -250,6 +271,7 @@ func LogoutHandler(db *sql.DB) http.HandlerFunc {
 		_, err = db.Exec("DELETE FROM sessions WHERE session_id = $1", cookie.Value)
 		if err != nil {
 			http.Error(w, "Failed to logout", http.StatusInternalServerError)
+			log.Print(err.Error())
 			return
 		}
 
@@ -292,6 +314,7 @@ func UpvoteHandler(db *sql.DB) http.HandlerFunc {
 		var upvote UpvoteRequest
 		if err := json.NewDecoder(r.Body).Decode(&upvote); err != nil {
 			http.Error(w, "Invalid request", http.StatusBadRequest)
+			log.Print(err.Error())
 			return
 		}
 
@@ -305,6 +328,7 @@ func UpvoteHandler(db *sql.DB) http.HandlerFunc {
 		_, err := db.Exec(query, upvote.ProfId, upvote.CategoryId)
 		if err != nil {
 			log.Printf("Failed to insert or update vote: %v", err)
+			log.Print(err.Error())
 			return
 		}
 
@@ -317,8 +341,6 @@ func UpvoteHandler(db *sql.DB) http.HandlerFunc {
 			log.Printf("Failed to insert or update tracker: %v", err)
 			return
 		}
-
-		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{
 			"message": "Vote successful",
 		})
@@ -331,6 +353,7 @@ func GetProfInfoHandler(db *sql.DB) http.HandlerFunc {
 		profId, err := strconv.Atoi(profIdStr)
 		if err != nil {
 			http.Error(w, "Invalid or missing profId", http.StatusBadRequest)
+			log.Print(err.Error())
 			return
 		}
 
@@ -343,10 +366,10 @@ func GetProfInfoHandler(db *sql.DB) http.HandlerFunc {
 			return
 		} else if err != nil {
 			http.Error(w, "Server error", http.StatusInternalServerError)
+			log.Print(err.Error())
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(info)
 	}
 }
@@ -363,6 +386,7 @@ func DownvoteHandler(db *sql.DB) http.HandlerFunc {
 		var downvote DownvoteRequest
 		if err := json.NewDecoder(r.Body).Decode(&downvote); err != nil {
 			http.Error(w, "Invalid request", http.StatusBadRequest)
+			log.Print(err.Error())
 			return
 		}
 
@@ -388,7 +412,6 @@ func DownvoteHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{
 			"message": "Vote successful",
 		})
@@ -406,8 +429,8 @@ func GetCategoriesUpHandler(db *sql.DB) http.HandlerFunc {
 
 		rows, err := db.Query(q)
 		if err != nil {
-			http.Error(w, "db query failed", http.StatusInternalServerError)
-			log.Printf("DB query failed")
+			http.Error(w, "DB query failed", http.StatusInternalServerError)
+			log.Printf("DB query failed: %v", err)
 			return
 		}
 		defer rows.Close()
@@ -428,10 +451,6 @@ func GetCategoriesUpHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		// If you handle CORS elsewhere (proxy or middleware), delete the next line.
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
-
 		if err := json.NewEncoder(w).Encode(categories); err != nil {
 			http.Error(w, "json encode failed", http.StatusInternalServerError)
 			return
@@ -445,7 +464,7 @@ func GetCategoriesDownHandler(db *sql.DB) http.HandlerFunc {
 
 		rows, err := db.Query(q)
 		if err != nil {
-			http.Error(w, "db query failed", http.StatusInternalServerError)
+			http.Error(w, "DB query failed", http.StatusInternalServerError)
 			return
 		}
 		defer rows.Close()
@@ -464,7 +483,6 @@ func GetCategoriesDownHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
 		// If you handle CORS elsewhere (proxy or middleware), delete the next line.
 		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
 
@@ -495,7 +513,7 @@ func GetSubCategoriesHandler(db *sql.DB) http.HandlerFunc {
 
 		rows, err := db.Query(q, categoryID)
 		if err != nil {
-			http.Error(w, "db query failed", http.StatusInternalServerError)
+			http.Error(w, "DB query failed", http.StatusInternalServerError)
 			return
 		}
 		defer rows.Close()
@@ -513,9 +531,6 @@ func GetSubCategoriesHandler(db *sql.DB) http.HandlerFunc {
 			http.Error(w, "rows error", http.StatusInternalServerError)
 			return
 		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
 
 		if err := json.NewEncoder(w).Encode(subcategories); err != nil {
 			http.Error(w, "json encode failed", http.StatusInternalServerError)
@@ -539,7 +554,7 @@ func GetProfessorsHandler(db *sql.DB) http.HandlerFunc {
 
 		rows, err := db.Query(q)
 		if err != nil {
-			http.Error(w, "db query failed", http.StatusInternalServerError)
+			http.Error(w, "DB query failed", http.StatusInternalServerError)
 			return
 		}
 		defer rows.Close()
@@ -558,9 +573,6 @@ func GetProfessorsHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
-
 		if err := json.NewEncoder(w).Encode(teachers); err != nil {
 			http.Error(w, "json encode failed", http.StatusInternalServerError)
 			return
@@ -574,7 +586,7 @@ func GetFacultiesHandler(db *sql.DB) http.HandlerFunc {
 
 		rows, err := db.Query(q)
 		if err != nil {
-			http.Error(w, "db query failed", http.StatusInternalServerError)
+			http.Error(w, "DB query failed", http.StatusInternalServerError)
 			return
 		}
 		defer rows.Close()
@@ -592,10 +604,6 @@ func GetFacultiesHandler(db *sql.DB) http.HandlerFunc {
 			http.Error(w, "rows error", http.StatusInternalServerError)
 			return
 		}
-
-		w.Header().Set("Content-Type", "application/json")
-		// If you handle CORS elsewhere (proxy or middleware), delete the next line.
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
 
 		if err := json.NewEncoder(w).Encode(faculties); err != nil {
 			http.Error(w, "json encode failed", http.StatusInternalServerError)
@@ -625,7 +633,7 @@ func GetTop3Handler(db *sql.DB) http.HandlerFunc {
 
 		rows, err := db.Query(q)
 		if err != nil {
-			http.Error(w, "db query failed", http.StatusInternalServerError)
+			http.Error(w, "DB query failed", http.StatusInternalServerError)
 			return
 		}
 		defer rows.Close()
@@ -660,9 +668,6 @@ func GetTop3Handler(db *sql.DB) http.HandlerFunc {
 			}
 			topTeachers[i].Streak++
 		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
 
 		if err := json.NewEncoder(w).Encode(topTeachers); err != nil {
 			http.Error(w, "json encode failed", http.StatusInternalServerError)
@@ -738,9 +743,6 @@ func GetTop3ByCategoryHandler(db *sql.DB) http.HandlerFunc {
 			topTeachers[i].Streak++
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
-
 		if err := json.NewEncoder(w).Encode(topTeachers); err != nil {
 			http.Error(w, "JSON encode failed", http.StatusInternalServerError)
 			return
@@ -813,9 +815,6 @@ func GetTop3ByFacultyHandler(db *sql.DB) http.HandlerFunc {
 			topTeachers[i].Streak++
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
-
 		if err := json.NewEncoder(w).Encode(topTeachers); err != nil {
 			http.Error(w, "JSON encode failed", http.StatusInternalServerError)
 			return
@@ -827,7 +826,6 @@ func GetBestCategories(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		teacherID, ok := r.URL.Query()["id"]
 		if !ok || len(teacherID[0]) < 1 {
-			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(map[string]string{
 				"error": "teacher_id parameter is missing",
@@ -837,7 +835,6 @@ func GetBestCategories(db *sql.DB) http.HandlerFunc {
 
 		teacherIDInt, err := strconv.Atoi(teacherID[0])
 		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(map[string]string{
 				"error": "invalid teacher_id",
@@ -857,7 +854,6 @@ func GetBestCategories(db *sql.DB) http.HandlerFunc {
 
 		rows, err := db.Query(query, teacherIDInt)
 		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(map[string]string{
 				"error": "DB query failed",
@@ -866,15 +862,11 @@ func GetBestCategories(db *sql.DB) http.HandlerFunc {
 		}
 		defer rows.Close()
 
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
-
 		var results []string
 
 		for rows.Next() {
 			var result string
 			if err := rows.Scan(&result); err != nil {
-				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusInternalServerError)
 				json.NewEncoder(w).Encode(map[string]string{
 					"error": "Row scan failed",
@@ -887,7 +879,6 @@ func GetBestCategories(db *sql.DB) http.HandlerFunc {
 		if err := json.NewEncoder(w).Encode(map[string][]string{
 			"items": results,
 		}); err != nil {
-			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(map[string]string{
 				"error": "JSON encode failed",
@@ -944,9 +935,6 @@ func GetWorstCategories(db *sql.DB) http.HandlerFunc {
 		}
 		defer rows.Close()
 
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
-
 		var results []WorstData
 		for rows.Next() {
 			var result WorstData
@@ -969,12 +957,14 @@ func GetNameHandler(db *sql.DB) http.HandlerFunc {
 		teacherID, ok := r.URL.Query()["id"]
 		if !ok || len(teacherID) < 1 {
 			http.Error(w, "teacher_id parameter is missing", http.StatusBadRequest)
+			log.Print(ok)
 			return
 		}
 
 		id, err := strconv.Atoi(teacherID[0])
 		if err != nil {
 			http.Error(w, "Invalid teacher_id", http.StatusBadRequest)
+			log.Print(err)
 			return
 		}
 
@@ -984,12 +974,11 @@ func GetNameHandler(db *sql.DB) http.HandlerFunc {
 		err = db.QueryRow(query, id).Scan(&name)
 
 		if err == sql.ErrNoRows {
-			http.Error(w, "DB query failed", http.StatusInternalServerError)
+			http.Error(w, "No rows", http.StatusInternalServerError)
+			log.Print("No rows")
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
 		if err := json.NewEncoder(w).Encode(map[string]string{
 			"name": name,
 		}); err != nil {
@@ -1021,13 +1010,12 @@ func GetAvatarUrl(db *sql.DB) http.HandlerFunc {
 		err = db.QueryRow(query, id).Scan(&url)
 
 		if err == sql.ErrNoRows {
-			http.Error(w, "DB query failed", http.StatusInternalServerError)
-			log.Printf("DB query failed")
+			json.NewEncoder(w).Encode(map[string]string{
+				"url": "",
+			})
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
 		if err := json.NewEncoder(w).Encode(map[string]string{
 			"url": url,
 		}); err != nil {
@@ -1093,8 +1081,6 @@ func CheckVotes(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
 		if err4 := json.NewEncoder(w).Encode(hasVoted); err4 != nil {
 			http.Error(w, "JSON encode failed", http.StatusInternalServerError)
 			return
@@ -1131,7 +1117,7 @@ func GetKudos(db *sql.DB) http.HandlerFunc {
 
 		rows, err1 := db.Query(query1, teacherID)
 		if err1 != nil {
-			http.Error(w, "db query failed", http.StatusInternalServerError)
+			http.Error(w, "DB query failed", http.StatusInternalServerError)
 			log.Printf("DB query failed: %v", err1)
 			return
 		}
@@ -1148,8 +1134,6 @@ func GetKudos(db *sql.DB) http.HandlerFunc {
 			kudos = append(kudos, kudo)
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
 		if err2 := json.NewEncoder(w).Encode(kudos); err2 != nil {
 			http.Error(w, "JSON encode failed", http.StatusInternalServerError)
 			return
@@ -1204,7 +1188,6 @@ func UpdateKudos(db *sql.DB) http.HandlerFunc {
 				log.Print(err.Error())
 			}
 		}
-		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{
 			"message": "Vote successful",
 		})

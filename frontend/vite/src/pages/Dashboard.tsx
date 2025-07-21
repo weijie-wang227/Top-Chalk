@@ -70,6 +70,7 @@ const Dashboard = () => {
           throw new Error("Failed to fetchBest");
         }
         setBest(data.items);
+        console.log(best);
       } catch (err: any) {
         console.log(err);
       }
@@ -243,33 +244,41 @@ const Dashboard = () => {
       </Box>
 
       {/* Top Traits */}
-      <Typography variant="h4" gutterBottom>
-        Your Best Traits
-      </Typography>
+      {best ? (
+        <Typography variant="h4" gutterBottom>
+          Your Best Traits
+        </Typography>
+      ) : (
+        <Typography variant="h4" gutterBottom>
+          Get more people to vote for you!
+        </Typography>
+      )}
 
-      <Box className="bar-container" sx={{ mt: 3, mb: 6 }}>
-        {best.length > 2 && (
-          <div className="bar third">
-            3
-            <br />
-            {best[2]}
-          </div>
-        )}
-        {best.length > 0 && (
-          <div className="bar first">
-            1
-            <br />
-            {best[0]}
-          </div>
-        )}
-        {best.length > 2 && (
-          <div className="bar second">
-            2
-            <br />
-            {best[1]}
-          </div>
-        )}
-      </Box>
+      {best && (
+        <Box className="bar-container" sx={{ mt: 3, mb: 6 }}>
+          {best.length > 2 && (
+            <div className="bar third">
+              3
+              <br />
+              {best[2]}
+            </div>
+          )}
+          {best.length > 0 && (
+            <div className="bar first">
+              1
+              <br />
+              {best[0]}
+            </div>
+          )}
+          {best.length > 2 && (
+            <div className="bar second">
+              2
+              <br />
+              {best[1]}
+            </div>
+          )}
+        </Box>
+      )}
 
       {/* Complaints Pie Chart */}
       {pieData && (
