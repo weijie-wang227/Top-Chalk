@@ -32,6 +32,7 @@ const Home = () => {
   */
 
   useEffect(() => {
+    console.log(API);
     const checkAuth = async () => {
       try {
         const res = await fetch(`${API}/auth/request`, {

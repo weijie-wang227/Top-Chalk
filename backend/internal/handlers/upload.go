@@ -41,8 +41,8 @@ func UploadAvatarHandler(db *sql.DB) http.HandlerFunc {
 		key := fmt.Sprintf("avatars/%s-%s%s", teacherId, uuid.New().String(), ext)
 
 		client := config.NewR2Client()
-		accountHash := os.Getenv("R2_ACCOUNT_HASH")
-		url := fmt.Sprintf("https://%s.r2.dev/", accountHash)
+		S3API := os.Getenv("R2_ACCOUNT_HASH")
+		url := fmt.Sprintf("https://pub-%s.r2.dev/", S3API)
 
 		// Delete previous avatar
 		var oldUrl string

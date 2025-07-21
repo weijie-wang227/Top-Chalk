@@ -15,7 +15,7 @@ type R2EndpointResolver struct{}
 
 func NewR2Client() *s3.Client {
 	customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-		accountHash := os.Getenv("R2_ACCOUNT_HASH")
+		accountHash := os.Getenv("S3_API")
 		if accountHash == "" {
 			return aws.Endpoint{}, fmt.Errorf("R2_ACCOUNT_HASH not set in environment")
 		}

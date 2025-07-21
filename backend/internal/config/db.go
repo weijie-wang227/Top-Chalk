@@ -9,6 +9,7 @@ import (
 
 func ConnectDB() *sql.DB {
 	dsn := getDSN()
+	log.Print(dsn)
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 
