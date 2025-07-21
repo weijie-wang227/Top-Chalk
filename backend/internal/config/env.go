@@ -3,18 +3,21 @@ package config
 import (
 	"fmt"
 	"os"
-	// Enable when testing locally
-	/*"log"
 
-	"github.com/joho/godotenv"*/)
-
-// Enable when testing locally
-/*func loadEnv() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-}*/
+  
+	/* Enable when testing locally 
+	"log"
+	"github.com/joho/godotenv"
+	*/
+)
+/* Enable when testing locally 
+func loadEnv() {
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+}
+*/
 
 func getDSN() string {
 
