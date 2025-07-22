@@ -483,9 +483,6 @@ func GetCategoriesDownHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		// If you handle CORS elsewhere (proxy or middleware), delete the next line.
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
-
 		if err := json.NewEncoder(w).Encode(categories); err != nil {
 			http.Error(w, "json encode failed", http.StatusInternalServerError)
 			return
