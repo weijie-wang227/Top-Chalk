@@ -41,6 +41,7 @@ func NewRouter(db *sql.DB) *mux.Router {
 
 	r.HandleFunc("/getKudos", handlers.GetKudos(db)).Methods("GET")
 	r.HandleFunc("/updateKudos", handlers.UpdateKudos(db)).Methods("POST")
+	r.HandleFunc("/checkCategory", handlers.CheckCategory(db)).Methods("POST")
 
 	return r
 }
