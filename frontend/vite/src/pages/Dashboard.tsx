@@ -52,7 +52,6 @@ const Dashboard = () => {
           throw new Error("Failed to fetchBest");
         }
         setBest(data.items);
-        console.log(best);
       } catch (err: any) {
         console.log(err);
       }
@@ -118,32 +117,55 @@ const Dashboard = () => {
     const fileInput = document.createElement("input");
     fileInput.type = "file";
     fileInput.accept = "image/*";
+
     fileInput.onchange = async (e) => {
       const target = e.target as HTMLInputElement;
       const file = target.files?.[0];
       if (!file) return;
 
-      const formData = new FormData();
-      formData.append("id", id.toString());
-      formData.append("image", file); // assume file is from <input type="file" />
-      const res = await fetch(`${API}/uploadAvatar`, {
-        method: "POST",
-        credentials: "include",
-        body: formData, // browser will set correct headers automatically
-      });
+      console.log("[UploadAvatar] Selected teacherId:", id);
 
-      const data = await res.json();
+      const formData = new FormData();
+      formData.append("teacherId", id.toString());
+      formData.append("image", file);
+
+      let res: Response;
+      try {
+        res = await fetch(`${API}/uploadAvatar`, {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        });
+      } catch (networkErr) {
+        console.error("[UploadAvatar] Network error:", networkErr);
+        return;
+      }
+
+      // Read the response body once as text
+      const raw = await res.text();
+      let data: any;
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        data = null;
+      }
 
       if (!res.ok) {
-        console.error(data.error);
-        throw new Error("Failed to change image");
+        console.error("[UploadAvatar] Upload failed:", data?.error || raw);
+        return;
       }
-      if (data.url) {
-        setAvatarUrl(data.url); // Update avatar UI
+
+      if (data?.url) {
+        console.log("[UploadAvatar] Success! Avatar URL:", data.url);
+        setAvatarUrl(data.url);
       } else {
-        console.log("avatar not set");
+        console.warn(
+          "[UploadAvatar] Upload succeeded, but no URL returned. Raw response:",
+          raw
+        );
       }
     };
+
     fileInput.click();
   };
 

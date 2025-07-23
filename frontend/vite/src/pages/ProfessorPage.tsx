@@ -56,9 +56,8 @@ const ProfessorPage = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-
         const res = await fetch(`${API}/categoriesUp`);
-        
+
         if (!res.ok) throw new Error("Failed to fetch categories");
         const data: Data[] = await res.json();
         setCategories(data);
@@ -81,7 +80,6 @@ const ProfessorPage = () => {
 
     const fetchInfo = async () => {
       try {
-
         const res = await fetch(`${API}/info?profId=${id}`);
 
         if (!res.ok) throw new Error("Unable to fetch info");
@@ -94,8 +92,6 @@ const ProfessorPage = () => {
 
     const fetchImage = async () => {
       try {
-        console.log(id);
-
         const res = await fetch(`${API}/avatarUrl?id=${id}`, {
           method: "GET",
           credentials: "include",
@@ -152,7 +148,6 @@ const ProfessorPage = () => {
   useEffect(() => {
     const fetchStudentId = async () => {
       try {
-
         const res = await fetch(`${API}/auth/request`, {
           method: "GET",
           credentials: "include", // include session cookie
@@ -204,12 +199,8 @@ const ProfessorPage = () => {
       body: JSON.stringify({ profId, studentId, selectedCategory }),
     });
 
-    console.log(response);
-
     if (response.ok) {
       const data = await response.json();
-      console.log(data);
-      console.log(data.message);
       setUpvote(true);
     } else {
       console.log("Vote failed");
@@ -232,12 +223,10 @@ const ProfessorPage = () => {
       body: JSON.stringify({ profId, studentId, selectedSubCategory }),
     });
 
-
     console.log(response);
 
     if (response.ok) {
       const data = await response.json();
-      console.log(data.message);
       setDownvote(true);
     } else {
       console.log("Vote failed");

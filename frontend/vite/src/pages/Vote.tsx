@@ -19,8 +19,8 @@ interface Data {
 }
 
 interface FacultyData {
-  id: number,
-  name: string,
+  id: number;
+  name: string;
 }
 
 interface FilterCategory {
@@ -30,7 +30,6 @@ interface FilterCategory {
 }
 
 const API = import.meta.env.VITE_API_BASE_URL;
-
 
 const Vote = () => {
   const [query, setQuery] = useState("");
@@ -45,14 +44,11 @@ const Vote = () => {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const filter: FilterCategory[] = [
     {
-      id : "1", name : "Faculty", subcategories : faculties
-    }
-  ]
-
-  /*
-  const [Allfaculties, setAllFaculties] = useState<Data[]>([]);
-  const [faculties, setFaculties] = useState<Data[]>([]);
-  */
+      id: "1",
+      name: "Faculty",
+      subcategories: faculties,
+    },
+  ];
 
   const navigate = useNavigate();
 
@@ -72,7 +68,6 @@ const Vote = () => {
       }
     };
 
-    
     const fetchFaculties = async () => {
       try {
         const res = await fetch(`${API}/faculties`);

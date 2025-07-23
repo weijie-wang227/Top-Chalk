@@ -67,14 +67,16 @@ func UploadAvatarHandler(db *sql.DB) http.HandlerFunc {
 		client := config.NewR2Client()
 
 		// Delete previous avatar if exists
-		var oldUrl string
+		var oldUrl sql.NullString
 		err = db.QueryRow("SELECT avatar_url FROM teachers WHERE id = $1", teacherId).Scan(&oldUrl)
 		if err != nil && err != sql.ErrNoRows {
 			sendError(w, http.StatusInternalServerError, "Failed to query existing avatar", err)
 			return
 		}
-		if oldUrl != "" {
-			oldKey := strings.TrimPrefix(oldUrl, url)
+
+		// Delete old avatar if exists
+		if oldUrl.Valid && oldUrl.String != "" {
+			oldKey := strings.TrimPrefix(oldUrl.String, url)
 			if oldKey != "" && oldKey != key {
 				_, delErr := client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
 					Bucket: aws.String("topchalk"),
@@ -82,6 +84,8 @@ func UploadAvatarHandler(db *sql.DB) http.HandlerFunc {
 				})
 				if delErr != nil {
 					log.Printf("[WARN] Failed to delete old avatar: %v", delErr)
+				} else {
+					log.Printf("[INFO] Old avatar deleted: %s", oldKey)
 				}
 			}
 		}

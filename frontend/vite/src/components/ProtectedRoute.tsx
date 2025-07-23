@@ -12,7 +12,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
 }) => {
   const { mode, loading } = useAuth();
-
   // If still loading, show nothing or a spinner
   if (loading) return <div>Loading...</div>;
 
