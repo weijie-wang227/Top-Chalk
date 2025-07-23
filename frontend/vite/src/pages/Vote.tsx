@@ -18,37 +18,41 @@ interface Data {
   faculty: string;
 }
 
+interface FacultyData {
+  id: number,
+  name: string,
+}
+
 interface FilterCategory {
   id: string;
   name: string;
-  subcategories: { id: string; name: string }[];
+  subcategories: { id: number; name: string }[];
 }
 
 const API = import.meta.env.VITE_API_BASE_URL;
 
-const filter: FilterCategory[] = [
-  {
-    id: "1",
-    name: "Faculty",
-    subcategories: [
-      { id: "1", name: "Medicine" },
-      { id: "2", name: "Nursing" },
-      { id: "3", name: "Business" },
-    ],
-  },
-];
 
 const Vote = () => {
   const [query, setQuery] = useState("");
   const [imageMap, setImageMap] = useState<Record<number, string>>({});
   const [profs, setProfessors] = useState<Data[]>([]);
-  const [filterData, setFilterData] = useState<FilterCategory[]>([]);
+  const [faculties, setFaculties] = useState<FacultyData[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<{
     category: string;
     subcategory: string;
   } | null>(null);
 
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const filter: FilterCategory[] = [
+    {
+      id : "1", name : "Faculty", subcategories : faculties
+    }
+  ]
+
+  /*
+  const [Allfaculties, setAllFaculties] = useState<Data[]>([]);
+  const [faculties, setFaculties] = useState<Data[]>([]);
+  */
 
   const navigate = useNavigate();
 
@@ -68,20 +72,19 @@ const Vote = () => {
       }
     };
 
-    /*
-    const fetchCategories = async () => {
+    
+    const fetchFaculties = async () => {
       try {
-        const res = await fetch("https://top-chalk-659279002644.asia-southeast1.run.app/faculties");
+        const res = await fetch(`${API}/faculties`);
         if (!res.ok) throw new Error("Failed to fetch faculties");
-        const data: Data[] = await res.json();
+        const data: FacultyData[] = await res.json();
         setFaculties(data);
       } catch (err) {
         console.error("Error:", err);
       }
     };
-    */
-    setFilterData(filter);
 
+    fetchFaculties();
     fetchProfessors();
   }, []);
 
@@ -199,7 +202,7 @@ const Vote = () => {
               </button>
 
               <div className="absolute top-full right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-in-out z-50">
-                {filterData.map((category) => (
+                {filter.map((category) => (
                   <div
                     key={category.id}
                     className="relative"

@@ -5,23 +5,23 @@ import (
 	"os"
 
 	// Enable when testing locally
-	"log"
+	// "log"
 
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv"
 )
 
 // Enable when testing locally
-func loadEnv() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-}
+// func loadEnv() {
+// 	err := godotenv.Load()
+// 	if err != nil {
+// 		log.Fatal("Error loading .env file")
+// 	}
+// }
 
 func getDSN() string {
 
 	// Enable when testing locally
-	loadEnv()
+	// loadEnv()
 
 	dbUser := os.Getenv("DB_USER")
 	dbPass := os.Getenv("DB_PASS")
@@ -29,7 +29,7 @@ func getDSN() string {
 	instanceConnName := os.Getenv("DB_HOST")
 
 	// For production add /cloudsql/ behind host
-	dsn := fmt.Sprintf("user=%s password=%s dbname=%s host=%s sslmode=disable",
+	dsn := fmt.Sprintf("user=%s password=%s dbname=%s host=/cloudsql/%s sslmode=disable",
 		dbUser, dbPass, dbName, instanceConnName)
 
 	fmt.Print(dsn)
