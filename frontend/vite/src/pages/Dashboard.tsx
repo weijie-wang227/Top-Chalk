@@ -14,6 +14,7 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import { useState } from "react";
 import { useEffect } from "react";
+import { useAuth } from "../AuthContext";
 
 const API = import.meta.env.VITE_API_BASE_URL;
 
@@ -26,41 +27,22 @@ interface WorstData {
 const Dashboard = () => {
   const [best, setBest] = useState<string[]>([]);
   const [pieData, setWorst] = useState<WorstData[]>([]);
-  const [teacherId, setId] = useState(-1);
   const [name, setName] = useState("");
   const [imageUrl, setAvatarUrl] = useState("");
 
+  const { id, checkAuth } = useAuth();
+
   useEffect(() => {
-    const fetchId = async () => {
-      try {
-        const res = await fetch(`${API}/auth/request`, {
-          method: "GET",
-          credentials: "include",
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          console.error("Auth error:", data.error);
-          throw new Error("Not authenticated");
-        }
-
-        setId(data.userId); // This will trigger the next useEffect
-      } catch (err) {
-        console.error("Auth check failed:", err);
-      }
-    };
-
-    fetchId();
+    checkAuth(); // runs auth check
   }, []);
 
-  // Step 2: Once teacherId is set, fetch best/worst
+  // Step 2: Once id is set, fetch best/worst
   useEffect(() => {
-    if (teacherId === -1) return;
+    if (id === -1) return;
 
     const fetchBest = async () => {
       try {
-        const res = await fetch(`${API}/bestCategories?id=${teacherId}`, {
+        const res = await fetch(`${API}/bestCategories?id=${id}`, {
           method: "GET",
           credentials: "include", // include session cookie
         });
@@ -78,7 +60,7 @@ const Dashboard = () => {
 
     const fetchWorst = async () => {
       try {
-        const res = await fetch(`${API}/worstCategories?id=${teacherId}`);
+        const res = await fetch(`${API}/worstCategories?id=${id}`);
         const data = await res.json();
         if (!res.ok) {
           console.error(data.error);
@@ -91,7 +73,7 @@ const Dashboard = () => {
     };
     const fetchName = async () => {
       try {
-        const res = await fetch(`${API}/getName?id=${teacherId}`, {
+        const res = await fetch(`${API}/getName?id=${id}`, {
           method: "GET",
           credentials: "include",
         });
@@ -109,7 +91,7 @@ const Dashboard = () => {
     };
     const fetchUrl = async () => {
       try {
-        const res = await fetch(`${API}/avatarUrl?id=${teacherId}`, {
+        const res = await fetch(`${API}/avatarUrl?id=${id}`, {
           method: "GET",
           credentials: "include",
         });
@@ -130,7 +112,7 @@ const Dashboard = () => {
     fetchName();
     fetchBest();
     fetchWorst();
-  }, [teacherId]);
+  }, [id]);
 
   const handleEdit = async () => {
     const fileInput = document.createElement("input");
@@ -142,7 +124,7 @@ const Dashboard = () => {
       if (!file) return;
 
       const formData = new FormData();
-      formData.append("teacherId", teacherId.toString());
+      formData.append("id", id.toString());
       formData.append("image", file); // assume file is from <input type="file" />
       const res = await fetch(`${API}/upload`, {
         method: "POST",

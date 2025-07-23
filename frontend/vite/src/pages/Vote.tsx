@@ -42,7 +42,7 @@ const Vote = () => {
   const [query, setQuery] = useState("");
   const [imageMap, setImageMap] = useState<Record<number, string>>({});
   const [profs, setProfessors] = useState<Data[]>([]);
-  const [filterData, setFilterData] = useState<FilterCategory[]>(filter);
+  const [filterData, setFilterData] = useState<FilterCategory[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<{
     category: string;
     subcategory: string;
@@ -80,6 +80,7 @@ const Vote = () => {
       }
     };
     */
+    setFilterData(filter);
 
     fetchProfessors();
   }, []);
