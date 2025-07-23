@@ -74,7 +74,7 @@ func CheckCategory(db *sql.DB) http.HandlerFunc {
 					return
 				}
 
-				insertSub := `INSERT INTO subcategoriesdown (title, category_id) VALUES ($1, $2)`
+				insertSub := `INSERT INTO subcategoriesdown (name, category_id) VALUES ($1, $2)`
 				_, err = db.Exec(insertSub, category.Complaint, categoryID)
 				if err != nil {
 					http.Error(w, "Failed to insert subcategory", http.StatusInternalServerError)
@@ -94,7 +94,7 @@ func CheckCategory(db *sql.DB) http.HandlerFunc {
 			} else {
 				w.Header().Set("Content-Type", "application/json")
 				if err := json.NewEncoder(w).Encode(map[string]string{
-					"error": "Category rejected by moderation.",
+					"message": "Category rejected by moderation.",
 					"status": "failure",
 				}); err != nil {
 					http.Error(w, "Encoding response failed", http.StatusInternalServerError)
