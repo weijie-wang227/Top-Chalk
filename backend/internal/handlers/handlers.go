@@ -504,7 +504,7 @@ func GetSubCategoriesHandler(db *sql.DB) http.HandlerFunc {
 		if err != nil {
 			http.Error(w, "invalid category_id", http.StatusBadRequest)
 			return
-		}
+		} 
 
 		const q = `SELECT id, name FROM subcategoriesdown WHERE category_id = $1`
 
