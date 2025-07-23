@@ -1,4 +1,4 @@
-import { Routes, Route, Link } from "react-router-dom";
+import { Routes, Route, Link, Navigate } from "react-router-dom";
 import {
   Box,
   Drawer,
@@ -17,43 +17,26 @@ import ProfessorPage from "./pages/ProfessorPage";
 import Vote from "./pages/Vote";
 import Home from "./pages/Home";
 import KudosBoard from "./pages/Kudos";
-import { useLocation } from "react-router-dom";
+import { useAuth } from "./AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const API = import.meta.env.VITE_API_BASE_URL;
 
 export default function App() {
-  const location = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [mode, setMode] = useState("None");
 
   const toggleDrawer = (open: boolean) => () => {
     setDrawerOpen(open);
   };
 
-  const checkAuth = async () => {
-    try {
-      const res = await fetch(`${API}/auth/request`, {
-        method: "GET",
-        credentials: "include", // include session cookie
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        console.error("Auth error:", data.error);
-        throw new Error("Not authenticated");
-      }
-      setMode(data.mode);
-    } catch (err) {
-      console.error("Auth check failed:", err);
-      setMode("None");
-    }
-  };
+  const { mode, checkAuth, setMode } = useAuth();
 
   useEffect(() => {
-    checkAuth();
-  }, [location]);
+    checkAuth(); // runs auth check
+  }, []);
 
   const logout = async () => {
+    setMode("None");
     try {
       const res = await fetch(`${API}/logout`, {
         method: "POST",
@@ -136,24 +119,55 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/leaderboards" element={<Leaderboards />} />
 
-          {mode == "student" && (
-            <>
-              <Route path="/vote" element={<Vote />} />
-            </>
-          )}
-          {mode == "None" && (
-            <>
-              <Route path="login" element={<Login />} />
-              <Route path="register" element={<Register />} />
-            </>
-          )}
-          {mode == "teacher" && (
-            <>
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="kudos" element={<KudosBoard />} />
-            </>
-          )}
+          <Route
+            path="/vote"
+            element={
+              <ProtectedRoute allowedModes={["student"]}>
+                <Vote />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/login"
+            element={
+              <ProtectedRoute allowedModes={["None"]}>
+                <Login />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/register"
+            element={
+              <ProtectedRoute allowedModes={["None"]}>
+                <Register />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute allowedModes={["teacher"]}>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/kudos"
+            element={
+              <ProtectedRoute allowedModes={["teacher"]}>
+                <KudosBoard />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="/professor/:id" element={<ProfessorPage />} />
+
+          {/* Catch-all redirect */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Box>
     </Box>

@@ -27,12 +27,8 @@ const Home = () => {
     active: true,
     timeLeft: "",
   });
-  /* For vercel 
-  const [canVote, setVote] = useState({});
-  */
 
   useEffect(() => {
-    console.log(API);
     const checkAuth = async () => {
       try {
         const res = await fetch(`${API}/auth/request`, {

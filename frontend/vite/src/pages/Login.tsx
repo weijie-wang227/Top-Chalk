@@ -10,6 +10,7 @@ import {
   Card,
   CardContent,
 } from "@mui/material";
+import { useAuth } from "../AuthContext";
 
 const API = import.meta.env.VITE_API_BASE_URL;
 
@@ -19,6 +20,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [failedLogins, setFailed] = useState(0);
   const [mode, setMode] = useState("student");
+  const { setAuth } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +35,7 @@ const Login = () => {
     if (response.ok) {
       const data = await response.json();
       console.log(data.message);
+      setAuth(mode);
       navigate("/");
     } else {
       console.log("Login failed");
