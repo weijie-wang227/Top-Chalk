@@ -236,6 +236,7 @@ const ProfessorPage = () => {
     if (response.ok) {
       const data = await response.json();
       setDownvote(true);
+      setShowAddCategory(false);
     } else {
       console.log("Vote failed");
     }
@@ -473,7 +474,7 @@ const ProfessorPage = () => {
                 onChange={(e) => setComplaint({ ...complaint, complaint: e.target.value })}
                 sx={{ mb: 2 }}
               />
-              <Button variant="contained" type="submit">
+              <Button variant="contained" type="submit" disabled={cannotDownvote}>
                 Submit Category
               </Button>
               {isLoading && <CircularProgress size={20} sx={{ ml: 2 }} />}
